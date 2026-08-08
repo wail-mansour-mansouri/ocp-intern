@@ -1,7 +1,7 @@
 # 00 — COMMENCER ICI
 
 > **Tu ne connais rien au projet ? C'est le bon fichier.**
-> En lisant les 8 documents de ce dossier dans l'ordre, tu comprendras 100 % du sujet :
+> En lisant les 10 documents de ce dossier dans l'ordre, tu comprendras 100 % du sujet :
 > le procédé industriel, ce qui est demandé, la modélisation mathématique, les hypothèses,
 > les décisions prises et pourquoi.
 > Tu n'auras **pas besoin** d'ouvrir les documents originaux de l'encadrant.
@@ -39,15 +39,17 @@ Lis dans cet ordre. Chaque document suppose acquis les précédents.
 | **05** | `05_MODELE_MATHEMATIQUE.md` | 90 min | **Le cœur mathématique.** Ensembles, variables, contraintes, objectif. |
 | **06** | `06_ANOMALIES_ET_DECISIONS.md` | 30 min | Les 11 problèmes trouvés dans le dossier et comment on les a tranchés. |
 | **07** | `07_FEUILLE_DE_ROUTE.md` | 15 min | Le plan complet du stage, phase par phase. |
+| **08** | `08_IMPLEMENTATION.md` | 40 min | Le code : architecture, points délicats, tests. |
+| **09** | `09_RESULTATS.md` | 40 min | **Ce que le modèle répond**, et ce qu'on en apprend. |
 
-**Total : environ 5 heures de lecture attentive.** Ne cherche pas à tout retenir : le
+**Total : environ 6 h 30 de lecture attentive.** Ne cherche pas à tout retenir : le
 glossaire et les tableaux sont faits pour être consultés, pas appris.
 
 ---
 
-## 3. Les 6 idées à retenir absolument
+## 3. Les 7 idées à retenir absolument
 
-Si tu ne devais retenir que six choses, ce sont celles-ci. Chacune est démontrée dans les
+Si tu ne devais retenir que sept choses, ce sont celles-ci. Chacune est démontrée dans les
 documents indiqués.
 
 ### Idée 1 — L'unité de tout le modèle est la tonne de P₂O₅, pas la tonne d'acide
@@ -86,7 +88,16 @@ Onze anomalies ont été identifiées, dont quatre erreurs arithmétiques franch
 recalcule-le.** Chaque anomalie est documentée avec sa résolution justifiée.
 → *Recensé en `06`.*
 
-### Idée 6 — Tout se joue sur le partage des décanteurs
+### Idée 6 — Le vrai problème de l'usine n'est pas un problème d'optimisation
+
+Le modèle sert 100 % de la demande sans difficulté. Mais il révèle deux violations que
+**aucune décision d'exploitation ne peut corriger** : IR11 déborde de 1 016 t/jour et le
+stock de 14EXT reste sous sa bande. Cause unique : trop d'échelons affectés à la
+cocristallisation, qui est une *configuration*, pas une décision.
+C'est le résultat le plus utile de toute l'étude.
+→ *Détaillé en `09`, §3 et §4.1.*
+
+### Idée 7 — Tout se joue sur le partage des décanteurs
 
 Chaque ligne d'acide 54 dispose de 2 décanteurs, soit 1 000 t/jour au total. Ces 1 000 t sont
 **partagées** entre deux usages concurrents : clarifier de l'acide normal (pour IR12) et
@@ -143,10 +154,10 @@ Le strict minimum pour ne pas être perdu dès la première page. Le reste est e
 
 ## 6. Et maintenant ?
 
-1. Lis les documents `01` à `06` dans l'ordre.
-2. Ouvre `../PILOTAGE/QUESTIONS_ENCADRANT.md` et pose les **5 questions principales** à ton
-   encadrant. Elles sont rédigées pour être posées telles quelles.
-3. Reviens me voir et dis-moi : **« on passe à la Phase 3 »**.
+1. Lis les documents `01` à `09` dans l'ordre.
+2. Ouvre `../PILOTAGE/QUESTIONS_ENCADRANT.md` et pose les questions à ton encadrant. Les
+   trois plus actionnables sont **Q11, Q12 et Q13**, issues des résultats de l'itération 2.
+3. Reviens me voir et dis-moi : **« on passe à la Phase 7 »** (rapport de stage LaTeX).
 
 L'état d'avancement du projet est toujours à jour dans
 `../PILOTAGE/ETAT_AVANCEMENT.md`.

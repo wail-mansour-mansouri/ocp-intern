@@ -217,3 +217,41 @@ signalée, à remplacer par le chiffre de l'encadrant. → Question Q2.
 
 **Conséquences.** α = 0 désactive proprement la règle ; le modèle reste utilisable en
 attendant la réponse. Une analyse de sensibilité sur α sera menée en Phase 5.
+
+---
+
+## D-10 — Charge de concentration : égalité avec bande de tolérance pénalisée
+
+**Contexte.** L'encadrant, interrogé sur la contrainte (C4), a répondu :
+> « Oui la somme doit être égale, c'est normalement rigide, mais on peut avoir des seuils
+> de tolérance pour respecter la planification des transferts. »
+
+**Options.**
+1. Égalité stricte : `x_std + x_dec = Π`.
+2. Inégalité libre dans une bande : `(1−ε)Π ≤ x_std + x_dec ≤ (1+ε)Π`.
+3. Bande **et** pénalisation de tout écart.
+
+**Décision.** Option 3 : la bande est autorisée à ±ε (ε = 5 % par défaut, paramétrable),
+et tout écart est pénalisé au **niveau 2** de l'objectif, avec un poids supérieur à celui
+des violations de bandes de stock.
+
+**Justification.** C'est la seule formulation qui rend fidèlement les deux moitiés de la
+réponse. L'option 1 ignore la tolérance accordée. L'option 2 la banalise : l'optimiseur
+s'écarterait du plan dès que cela l'arrange, alors que l'encadrant qualifie l'égalité de
+« normalement rigide ». En pénalisant, on obtient exactement le comportement voulu — le
+modèle **reste à l'égalité stricte** sauf lorsque s'en écarter évite une violation plus
+grave. C'est vérifié dans les faits : sur le scénario de référence, la solution optimale
+n'utilise pas un gramme de tolérance (test `test_charge_de_concentration_a_l_egalite`).
+
+**Conséquence secondaire, structurante.** Rendre la charge variable a obligé à revoir le
+calcul du NCL produit. Si la charge peut s'écarter du plan, la production ne peut plus
+être le paramètre `Π_ncl`. La ventilation correcte est :
+
+$$N_m \;=\; \underbrace{x^{std}_\ell}_{\text{acide standard chargé}} \;-\; \underbrace{\Pi^{coc}_m}_{\text{part cocristallisée}}$$
+
+avec la contrainte supplémentaire $x^{std}_\ell \ge \Pi^{coc}_m$ : les échelons
+cocristallisants tournent au plan et doivent être alimentés. Quand la charge vaut
+exactement le plan, on retrouve bien $N_m = \Pi^{ncl}_m - x^{dec}_\ell$, la formule
+initiale. La nouvelle écriture la **généralise** sans la contredire.
+
+**Réversibilité.** Élevée : `tolerance_concentration = 0` restaure l'égalité stricte.

@@ -16,12 +16,12 @@
 | Caractéristique | Valeur |
 |---|---|
 | Horizon | 1 journée |
-| Variables continues | ≈ 175 |
-| Variables binaires | ≈ 29 |
-| Contraintes | ≈ 200 |
+| Variables continues | **141** *(mesuré)* |
+| Variables binaires | **29** *(mesuré)* |
+| Contraintes | **138** *(mesuré)* |
 | Objectif | lexicographique à 3 niveaux |
 | Solveur envisagé | PuLP + CBC (libre) |
-| Temps de résolution attendu | < 1 s |
+| Temps de résolution | **0,06 s** *(mesuré)* |
 
 **Pourquoi « en nombres entiers » ?** Deux familles de décisions sont intrinsèquement
 discrètes :
@@ -305,18 +305,43 @@ $$d_\ell \;\le\; P_\ell \qquad \forall \ell \in \mathcal{L}^{dec}_{29}$$
 **Justification.** Sans cette contrainte, 13ZU (qui produit 800 t) pourrait « décadmier »
 1 500 t et créer de la matière. **Contrainte indispensable**, absente du dossier.
 
-### (C4) Charge de concentration
+### (C4) Charge de concentration — *révisée après réponse de l'encadrant*
 
-$$\boxed{\;x^{std}_\ell + x^{dec}_\ell \;=\; \Pi_{\sigma(\ell)}\;}
+$$\boxed{\;x^{std}_\ell + x^{dec}_\ell \;=\; \Pi_{\sigma(\ell)} + \varepsilon^{+}_\ell - \varepsilon^{-}_\ell\;}
 \qquad \forall \ell \in \mathcal{L}^{\ast}_{29}$$
 
-**Français.** La ligne 29 doit fournir **exactement** ce que sa ligne de concentration va
-produire — ni plus, ni moins.
-**Organe.** Alimentation des échelons.
-**Justification.** La production d'acide 54 est imposée par les heures de marche, et le
-rendement vaut 1. Le débit entrant est donc entièrement déterminé.
-**Attention :** c'est une **égalité**. La seule liberté porte sur la **répartition**
-std / dec.
+$$0 \le \varepsilon^{+}_\ell \le \epsilon\, \Pi_{\sigma(\ell)},
+\qquad 0 \le \varepsilon^{-}_\ell \le \epsilon\, \Pi_{\sigma(\ell)}$$
+
+**Français.** La ligne 29 fournit à sa concentration ce que celle-ci va produire, à une
+tolérance de $\epsilon$ près (5 % par défaut). Tout écart est **pénalisé** au niveau 2 de
+l'objectif.
+
+**Origine.** L'encadrant, interrogé sur cette contrainte, a répondu :
+> « Oui la somme doit être égale, c'est normalement rigide, mais on peut avoir des seuils
+> de tolérance pour respecter la planification des transferts. »
+
+**Justification de la forme.** Une égalité stricte ignorerait la tolérance accordée ; une
+inégalité libre la banaliserait, l'optimiseur s'écartant du plan dès que cela l'arrange.
+La bande **pénalisée** rend fidèlement les deux moitiés de la réponse : le modèle reste à
+l'égalité stricte sauf lorsque s'en écarter évite une violation plus grave.
+Voir décision **D-10**.
+
+**Vérification empirique.** Sur le scénario de référence, la solution optimale n'utilise
+**aucune** tolérance : les cinq lignes sont exactement au plan. Le comportement est donc
+bien celui décrit comme « normalement rigide ».
+
+### (C4b) Alimentation des échelons cocristallisants
+
+$$x^{std}_\ell \;\ge\; \Pi^{coc}_{\sigma(\ell)} \qquad \forall \ell \in \mathcal{L}^{\ast}_{29}$$
+
+**Français.** Les échelons affectés à la cocristallisation tournent au plan : ils doivent
+recevoir leur alimentation en acide **standard**.
+
+**Justification.** Conséquence directe de (C4) devenue souple. Si la charge peut s'écarter
+du plan, il faut préciser **quels** échelons absorbent l'écart. Les unités de
+cocristallisation ne se modulent pas ; ce sont donc les échelons ordinaires qui absorbent
+la variation.
 
 ### (C5) Limite de l'acide décadmié en concentration
 
@@ -332,14 +357,22 @@ produirait un acide impossible à traiter ensuite.
 échelon de cocristallisation. La contrainte est donc **inactive** ici — mais elle protège
 le modèle dans toute autre configuration.
 
-### (C6) NCL réellement disponible
+### (C6) NCL réellement disponible — *révisée*
 
-$$N_m \;=\; \Pi^{ncl}_m - x^{dec}_{\sigma^{-1}(m)} \qquad \forall m \in \mathcal{L}_{54}$$
+$$N_m \;=\; x^{std}_{\sigma^{-1}(m)} \;-\; \Pi^{coc}_m \qquad \forall m \in \mathcal{L}_{54}$$
 
-**Français.** Le NCL ordinaire produit, c'est ce que fabriquent les échelons non
-cocristallisants, moins la part occupée à traiter de l'acide décadmié.
-**Justification.** Les échelons non cocristallisants sont partagés entre deux flux ; ce qui
-sert au décadmié ne produit pas de NCL ordinaire.
+**Français.** Le NCL ordinaire produit, c'est l'acide standard chargé, moins la part
+consommée par les échelons cocristallisants.
+
+**Justification de la révision.** Tant que (C4) était une égalité stricte, on pouvait
+écrire $N_m = \Pi^{ncl}_m - x^{dec}$. Dès lors que la charge peut s'écarter du plan, la
+production ne peut plus être un paramètre : elle doit suivre la charge réelle.
+
+**Cohérence avec l'ancienne formule.** Quand la charge vaut exactement le plan,
+$x^{std} + x^{dec} = \Pi_m = \Pi^{coc}_m + \Pi^{ncl}_m$, donc
+$x^{std} - \Pi^{coc}_m = \Pi^{ncl}_m - x^{dec}$. La nouvelle écriture **généralise**
+l'ancienne sans la contredire — c'est le test à faire systématiquement quand on relâche
+une contrainte.
 
 ### (C7) Bilan matière — stock d'acide 29 standard ⭐
 
@@ -535,7 +568,8 @@ Toutes les variables sont $\ge 0$, sauf les binaires qui sont dans $\{0,1\}$.
 | C1 | Partage production 29 | égalité | 6 | filtration |
 | C2 | Choix du niveau de décadmiation | égalité | 5 | filtres |
 | C3 | Faisabilité décadmiation | ≤ | 5 | filtres |
-| C4 | Charge de concentration | **égalité** | 5 | échelons |
+| C4 | Charge de concentration | égalité souple | 5 | échelons |
+| C4b | Alimentation des échelons CoC | ≥ | 5 | échelons |
 | C5 | Limite acide dec en concentration | ≤ | 5 | échelons |
 | C6 | NCL disponible | égalité | 5 | échelons |
 | C7 | **Bilan acide 29 std** | égalité | 6 | cuves 29 |
@@ -743,3 +777,32 @@ Liste de contrôle pour la Phase 5.
 - [ ] Contrainte de qualité d'IR11 respectée
 - [ ] Identifier les **contraintes actives** (goulots d'étranglement)
 - [ ] Analyse de sensibilité sur $\alpha$, $\tau^{\max}$, $Z^{\max}_{29}$
+
+
+---
+
+## 11. Ce que le modèle a effectivement donné
+
+La résolution du scénario de référence est décrite en détail dans
+`09_RESULTATS.md`. En résumé :
+
+| Contrôle du §10 | Résultat |
+|---|---|
+| Statut du solveur | ✅ **Optimal** (0,06 s) |
+| $f_1 = 0$ | ✅ 100 % de la demande servie |
+| Bilans matière sur les 19 nœuds | ✅ 86 contrôles indépendants réussis |
+| Décadmiations discrètes | ✅ 750 t sur 13XY, rien ailleurs |
+| Transferts nuls ou ≥ 100 t | ✅ trois transferts, dont un pile à 100 t |
+| Capacités de décanteurs | ✅ 48 % et 72 % au plus |
+| Stocks positifs | ✅ partout |
+| Qualité d'IR11 | ✅ contrainte active, 429 t de DEC_CL produites |
+| Contraintes actives | 🔴 IR11 dépassé de 1 016 t ; cuves d'acide 29 saturées sur 3 lignes |
+| Sensibilité | ✅ menée sur $\alpha$, $\tau^{\max}$ et la configuration CoC |
+
+**Le point le plus important :** les deux violations résiduelles ne viennent d'aucune
+mauvaise décision d'exploitation — le modèle a fait au mieux. Elles viennent de la
+**configuration** de la cocristallisation, qui est un paramètre. Réduire de 4 à 1 le
+nombre d'échelons de 14EXT affectés au CoC les résorbe intégralement.
+
+C'est exactement ce qu'un modèle d'optimisation doit produire : non pas seulement un plan,
+mais le **diagnostic** de ce qui empêche le plan d'être bon.

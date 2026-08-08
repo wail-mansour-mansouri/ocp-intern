@@ -1,0 +1,26 @@
+[project]
+name = "ocp-optim"
+version = "0.1.0"
+description = "Optimisation de la production et de la distribution d'acide phosphorique — OCP Jorf Lasfar"
+requires-python = ">=3.10"
+dependencies = [
+    "pulp>=2.7,<4",   # PuLP 4 change l'API de construction des variables
+    "openpyxl>=3.1",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+# PuLP 3.3 annonce sa future API 4.0 ; le code est volontairement resté sur
+# l'API stable actuelle, et la borne <4 dans les dépendances protège du saut.
+filterwarnings = ["ignore::DeprecationWarning:pulp.*"]

@@ -67,3 +67,84 @@ elles sont traitées comme des paramètres explicites avec valeur par défaut ju
 ### Prochaine séance
 Phase 3 — construction du socle logiciel (constantes, conversions, scénario, profils
 qualité) avec ses tests unitaires.
+
+---
+
+## Itération 2 — 2026-08-08 — Implémentation, résolution, validation
+
+### Objectif de la séance
+Passer de la formalisation au logiciel : construire le socle, écrire le modèle MILP, le
+résoudre, le valider, produire les rapports.
+
+### Élément déclencheur
+L'encadrant a répondu sur la contrainte de charge de concentration (C4) :
+> « Oui la somme doit être égale, c'est normalement rigide, mais on peut avoir des seuils
+> de tolérance pour respecter la planification des transferts. »
+
+Cette réponse a été intégrée sous la forme d'une **bande de tolérance pénalisée**
+(décision **D-10**). Vérification a posteriori : sur le scénario de référence, la solution
+optimale **n'utilise pas un gramme de tolérance** — le comportement est donc exactement
+celui décrit, « normalement rigide ».
+
+Pour les autres questions restées sans réponse, les hypothèses de l'itération 1 ont été
+retenues telles quelles, puis leur influence a été **mesurée** par analyse de sensibilité
+plutôt que devinée.
+
+### Travail réalisé
+
+**1. Socle logiciel** — `constants`, `units`, `profiles`, `scenario`, `preprocessing`.
+Le fichier `quality_profiles.json`, absent du dossier, a été reconstruit à partir des
+coefficients dispersés dans le texte, avec la source de chacun.
+
+**2. Modèle MILP** — 170 variables dont 29 binaires, 138 contraintes. Une fonction par
+famille de contraintes, nommée d'après sa référence du document `05`.
+
+**3. Résolution lexicographique** — 3 passes, statut **Optimal** en 0,06 s.
+Deux difficultés numériques rencontrées et résolues :
+- figer un niveau à l'exact rend la passe suivante infaisable (tolérance relative 1e-6) ;
+- PuLP normalise la catégorie « Binary » en « Integer » borné à [0, 1].
+
+**4. Validateur indépendant** — 86 contrôles recalculés à partir des équations physiques,
+et non des contraintes du modèle. **Il a immédiatement détecté un vrai bug** : dans
+l'extraction des résultats, les livraisons de CoC et de DEC_CL vers un même consommateur
+s'écrasaient au lieu de se cumuler, faussant le bilan d'IR11 de 25,7 t. Un contrôle qui
+aurait relu les contraintes du modèle n'aurait rien vu.
+
+**5. Tests** — 138 tests en 1,2 s. Trois familles remarquables : ceux qui **verrouillent
+une anomalie** du dossier, ceux qui **prouvent par contre-épreuve** qu'une contrainte sert
+à quelque chose, et ceux qui **corrompent délibérément** la solution pour vérifier que le
+validateur les rejette.
+
+**6. Rapports** — Excel à 5 feuilles conforme à `OUTPUT_FORMAT.md`, plus export JSON.
+
+**7. Analyses** — goulots d'étranglement et sensibilité sur les trois paramètres incertains.
+
+### Résultats
+
+**Le modèle sert 100 % de la demande** en 0,06 s, avec un plan sobre : une seule
+décadmiation (750 t sur 13XY), trois transferts, deux lignes clarifiantes.
+
+**Mais deux violations structurelles subsistent**, toutes deux dues à la même cause — le
+nombre d'échelons affectés à la cocristallisation :
+1. IR11 déborde de 1 016 t/jour ;
+2. le stock de 14EXT reste 252 t sous sa bande de sécurité, cette ligne ne produisant
+   aucun acide 54 NCL ordinaire.
+
+**Le balayage apporte le remède chiffré** : ramener de 4 à 1 le nombre d'échelons de
+14EXT en cocristallisation résorbe **intégralement** les deux violations (f2 : 1 268 → 0),
+sans investissement et sans dégrader le service.
+
+**Deux résultats secondaires utiles :**
+- le domaine admissible de α est borné à ≈ 0,22, faute d'une seconde ligne habilitée au
+  DEC_CL — information à remonter à l'encadrant ;
+- la valeur de `MAX_TRANSFER` est **sans effet** au-delà de 750 t, ce qui rétrograde la
+  question Q1 de « priorité haute » à « informative ». C'est exactement ce qu'on attend
+  d'une analyse de sensibilité : elle transforme une incertitude en non-problème.
+
+### Décisions prises
+**D-10** — charge de concentration : bande de tolérance pénalisée. Conséquence
+structurante : la ventilation du NCL produit a dû être généralisée en
+`N_m = x_std − Π_coc`, forme qui redonne l'ancienne formule quand la charge vaut le plan.
+
+### Prochaine séance
+Phase 7 — rapport de stage LaTeX → PDF.

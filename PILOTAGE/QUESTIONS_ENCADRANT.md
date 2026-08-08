@@ -7,7 +7,16 @@
 
 ---
 
-## Q1 — Quelle est la borne maximale d'un transfert interzone ? ⚠️ *priorité haute*
+## Q1 — Quelle est la borne maximale d'un transfert interzone ? ✅ *résolue par l'analyse*
+
+> **Mise à jour, itération 2.** L'analyse de sensibilité montre que **la valeur n'a aucune
+> influence** : au-delà de 750 t, la solution est strictement identique (mêmes transferts,
+> mêmes valeurs d'objectif). La valeur d'attente de 1 000 t est donc sans risque, et la
+> question passe de « priorité haute » à simplement informative.
+> Seule une borne très basse (300 t) dégraderait la solution.
+> Détail en `docs-helper/09_RESULTATS.md`, §4.3.
+
+**Question d'origine, conservée pour mémoire :**
 
 **La question.**
 > « Le document précise qu'un transfert interzone d'acide 29 doit respecter un minimum
@@ -33,6 +42,14 @@ de stock. Une analyse de sensibilité est prévue en Phase 5.
 ---
 
 ## Q2 — Comment quantifier l'obligation de produire du DEC_CL ? ⚠️ *priorité haute*
+
+> **Mise à jour, itération 2.** Le domaine admissible de α a été établi : **α ≲ 0,22**.
+> Au-delà, le modèle n'a plus de solution, car **seule 14XY est habilitée à produire du
+> DEC_CL** et sa capacité d'échelons non cocristallisants plafonne à 820,8 t.
+> Si la valeur métier dépasse ce seuil, il faudra habiliter une seconde ligne (question Q13).
+> Par ailleurs, la contre-épreuve confirme la nécessité de la contrainte : avec α = 0,
+> l'optimiseur cesse **totalement** de produire du DEC_CL.
+
 
 **La question.**
 > « Le guide indique que la production de DEC_CL est obligatoire, car IR11 doit contenir un
@@ -135,3 +152,73 @@ l'encadrant qui applique ce choix. Le point de retour est un **paramètre** du c
   la formule `P54 = C × h / 24` implique des **tonnes/jour**. Confirmation ?
 - **Q10** — Existe-t-il un coût ou une préférence entre les lignes (énergie, main-d'œuvre)
   qui permettrait d'affiner le niveau 3 de la fonction objectif ?
+
+
+---
+
+# Questions nouvelles, issues des résultats de l'itération 2
+
+Ces trois questions sont les plus **actionnables** du dossier : elles portent sur des
+décisions que l'usine peut prendre, et l'analyse chiffre déjà leur effet.
+
+---
+
+## Q11 — Peut-on réduire le nombre d'échelons de 14EXT en cocristallisation ? 🎯 *la plus importante*
+
+**La question.**
+> « Notre modèle révèle que le bac IR11 déborde de 1 016 tonnes par jour, et que le stock
+> d'acide 54 de 14EXT reste sous son niveau de sécurité. Les deux problèmes ont la même
+> cause : les quatre échelons de 14EXT sont affectés à la cocristallisation, si bien que
+> la ligne produit 2 431 t de CoC par jour pour un besoin de 987 t, et **plus une seule
+> tonne** d'acide 54 NCL ordinaire.
+>
+> Nos calculs montrent que **ramener ce nombre de 4 à 1 résorbe intégralement les deux
+> problèmes**, sans dégrader le service. Est-ce envisageable en exploitation ? Y a-t-il
+> une contrainte technique qui impose de faire tourner les quatre échelons ? »
+
+**Pourquoi elle se pose.** C'est le seul levier identifié qui résout les deux violations
+structurelles, et il **ne demande aucun investissement** — seulement une reconfiguration
+de la marche des échelons.
+
+**Chiffres à l'appui** (`docs-helper/09_RESULTATS.md`, §4.1) :
+
+| Échelons CoC de 14EXT | Dépassement d'IR11 | Niveau 2 de l'objectif |
+|---|---:|---:|
+| 4 sur 4 *(actuel)* | 1 016,0 t | 1 268,3 |
+| 2 sur 4 | 390,1 t | 390,1 |
+| **1 sur 4** | **0,0 t** | **0,0** |
+
+---
+
+## Q12 — L'excédent de CoC a-t-il un débouché que nous n'aurions pas modélisé ?
+
+**La question.**
+> « La cocristallisation systématique produit 2 431 t de CoC par jour, alors que la demande
+> en acide de qualité décadmiée n'est que de 987 t. Dans notre modèle, l'excédent
+> s'accumule dans IR11 jusqu'à le faire déborder. Existe-t-il un autre débouché — vente
+> d'acide marchand, export, transfert vers un autre bac — que nous n'aurions pas pris en
+> compte ? »
+
+**Pourquoi elle se pose.** C'est l'explication alternative au débordement. Si un tel
+débouché existe, le dépassement d'IR11 est un **artefact de notre modélisation** et il
+suffit d'ajouter le flux manquant. S'il n'existe pas, c'est un **vrai problème
+d'exploitation** que le modèle vient de mettre au jour.
+
+**Impact.** Fort, et binaire : la réponse détermine s'il faut corriger le modèle ou
+alerter l'exploitation.
+
+---
+
+## Q13 — Une seconde ligne pourrait-elle produire du DEC_CL ?
+
+**La question.**
+> « Aujourd'hui, seule 14XY est habilitée à produire de l'acide décadmié clarifié. Cela
+> plafonne la part de DEC_CL dans IR11 à environ 22 %. Si la valeur métier que vous
+> retiendrez pour cette part dépasse ce seuil, il faudrait habiliter une seconde ligne.
+> Laquelle serait techniquement envisageable ? »
+
+**Pourquoi elle se pose.** C'est la conséquence directe de l'analyse de sensibilité sur α :
+le domaine admissible est borné par une contrainte de configuration, pas par la physique
+du procédé.
+
+**Impact.** Conditionnel — cette question ne se pose que si la réponse à Q2 dépasse 0,22.

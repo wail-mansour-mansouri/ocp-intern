@@ -1,0 +1,56 @@
+{
+  "_meta": {
+    "description": "Profils qualite des engrais : tonnes d'acide (P2O5) par tonne d'engrais produite.",
+    "statut": "RECONSTRUIT",
+    "motif": "Le fichier d'origine `config/quality_profiles_v2.json` est reference comme essentiel dans quatre documents du dossier mais n'y figure pas (anomalie A-10). Les coefficients ci-dessous ont ete extraits un a un du texte des documents fournis ; la colonne `source` indique leur provenance exacte.",
+    "unite": "tonne de P2O5 par tonne d'engrais",
+    "a_remplacer_des_que": "l'encadrant fournit le fichier original (question Q6)",
+    "types_acide_valides": [
+      "acid_29_std",
+      "acid_29_dec",
+      "acid_54_ncl",
+      "acid_54_cl",
+      "acid_54_dec_total"
+    ]
+  },
+
+  "profils": {
+    "DAP_STANDARD": {
+      "acid_29_std": 0.127,
+      "acid_54_ncl": 0.354,
+      "source": "REAL_SCENARIO_REFERENCE.md"
+    },
+    "TSP_EURO": {
+      "acid_54_dec_total": 0.379,
+      "source": "REAL_SCENARIO_REFERENCE.md"
+    },
+    "MAP_11_52_EU": {
+      "acid_29_dec": 0.030,
+      "acid_54_dec_total": 0.129,
+      "source": "REAL_SCENARIO_REFERENCE.md",
+      "remarque": "Le meme produit apparait sous deux noms dans le dossier : `MAP_11_54_NE_EU` et `MAP_11_52_EU`. Nous retenons `MAP_11_52_EU`, coherent avec la nomenclature MAP 11-52-0."
+    },
+    "NPK_12_24_12_EU": {
+      "acid_54_dec_total": 0.091,
+      "source": "REAL_SCENARIO_REFERENCE.md"
+    },
+    "NPK_15_15_15_EU_20_MGKP2O5": {
+      "acid_29_dec": 0.171,
+      "source": "REAL_SCENARIO_REFERENCE.md"
+    },
+
+    "MAP_11_52_SPECIAL": {
+      "acid_29_std": 0.625,
+      "source": "CORE_FIXED_ELEMENTS.md"
+    },
+    "DAP_EURO": {
+      "acid_29_dec": 0.120,
+      "acid_54_dec_total": 0.109,
+      "source": "CORE_FIXED_ELEMENTS.md"
+    },
+    "NPK_14_18_18_6S_1B2O3_AFRIQUE": {
+      "acid_54_dec_total": 0.513,
+      "source": "CORE_FIXED_ELEMENTS.md"
+    }
+  }
+}
