@@ -57,7 +57,7 @@ pytest                                     # 138 tests, ~1,2 s
 
 | Fichier | Contenu |
 |---|---|
-| `00_COMMENCER_ICI.md` | Point d'entrée, ordre de lecture, les 6 idées clés |
+| `00_COMMENCER_ICI.md` | Point d'entrée, ordre de lecture, les 7 idées clés |
 | `01_GLOSSAIRE.md` | Tous les termes du sujet |
 | `02_CONTEXTE_INDUSTRIEL.md` | OCP, Jorf Lasfar, les acteurs, les enjeux |
 | `03_PROCEDE_DETAILLE.md` | Le procédé, organe par organe, avec schémas |

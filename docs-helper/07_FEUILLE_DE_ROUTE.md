@@ -11,12 +11,12 @@
 Phase 0  Cadrage et système de continuité              ✅ TERMINÉ
 Phase 1  Compréhension du métier                       ✅ TERMINÉ
 Phase 2  Formalisation mathématique                    ✅ TERMINÉ
+Phase 3  Socle logiciel                                ✅ TERMINÉ
+Phase 4  Modèle d'optimisation                         ✅ TERMINÉ
+Phase 5  Validation et analyse                         ✅ TERMINÉ
+Phase 6  Rapport Excel                                 ✅ TERMINÉ
 ─────────────────────────────────────────────────────────────────
-Phase 3  Socle logiciel                                ⬜ SUIVANTE
-Phase 4  Modèle d'optimisation
-Phase 5  Validation et analyse
-Phase 6  Rapport Excel
-Phase 7  Rapport de stage LaTeX
+Phase 7  Rapport de stage LaTeX                        ⬜ SUIVANTE
 ```
 
 ---
@@ -38,7 +38,7 @@ Modèle complet : 8 ensembles, 23 familles de paramètres, 9 familles de variabl
 
 ---
 
-## Phase 3 — Socle logiciel ⬜ *(prochaine étape)*
+## Phase 3 — Socle logiciel ✅
 
 ### Objectif
 Construire les fondations : constantes, conversions, chargement de scénario, profils
@@ -71,6 +71,13 @@ data/
 └── quality_profiles.json      # RECONSTRUIT (voir A-10)
 ```
 
+> **Écart avec l'architecture réalisée.** `model/sets.py` n'a finalement pas été créé :
+> les ensembles sont si peu nombreux et si stables qu'ils vivent directement dans
+> `constants.py`, et les ensembles dépendant du scénario sont portés par `Scenario`.
+> Trois modules ont en revanche été ajoutés : `results.py` (vue métier de la solution),
+> `analysis.py` (goulots et sensibilité) et `cli.py`. Architecture définitive décrite en
+> `08_IMPLEMENTATION.md`.
+
 ### Justification de cette architecture
 - **Modulaire** — un module, une responsabilité. On peut remplacer le solveur sans toucher
   au reste.
@@ -80,13 +87,13 @@ data/
   qui est calculable, puis on optimise le reste.
 
 ### Livrables
-- [ ] `constants.py` — toutes les constantes du document `04` §9
-- [ ] `units.py` + tests (les 4 conversions doivent reproduire les stocks initiaux)
-- [ ] `data/quality_profiles.json` reconstruit
-- [ ] `scenario.py` avec validation stricte (un scénario incomplet doit échouer clairement)
-- [ ] `data/scenarios/real_scenario.json`
-- [ ] `preprocessing.py` — calcul de $\Pi_m$, $G_m$, $R_{k,a}$
-- [ ] Tests unitaires : couverture ≥ 90 % sur le socle
+- [x] `constants.py` — toutes les constantes du document `04` §9
+- [x] `units.py` + tests (les 4 conversions doivent reproduire les stocks initiaux)
+- [x] `data/quality_profiles.json` reconstruit
+- [x] `scenario.py` avec validation stricte (un scénario incomplet doit échouer clairement)
+- [x] `data/scenarios/real_scenario.json`
+- [x] `preprocessing.py` — calcul de $\Pi_m$, $G_m$, $R_{k,a}$
+- [x] Tests unitaires : couverture ≥ 90 % sur le socle
 
 ### Critères d'achèvement
 - `pytest` passe intégralement
@@ -96,7 +103,7 @@ data/
 
 ---
 
-## Phase 4 — Modèle d'optimisation ⬜
+## Phase 4 — Modèle d'optimisation ✅
 
 ### Objectif
 Traduire le modèle mathématique du document `05` en code, et le résoudre.
@@ -119,10 +126,10 @@ Si les performances devenaient un problème (elles ne le seront pas), PuLP perme
 sur Gurobi ou CPLEX **en changeant une seule ligne**.
 
 ### Livrables
-- [ ] Modules `model/*.py`
-- [ ] `solver.py` avec résolution lexicographique en 3 passes
-- [ ] Statut `Optimal` sur le scénario réel
-- [ ] Test de non-régression sur la valeur de l'objectif
+- [x] Modules `model/*.py`
+- [x] `solver.py` avec résolution lexicographique en 3 passes
+- [x] Statut `Optimal` sur le scénario réel
+- [x] Test de non-régression sur la valeur de l'objectif
 
 ### Critères d'achèvement
 - Résolution en moins de 10 s
@@ -131,7 +138,7 @@ sur Gurobi ou CPLEX **en changeant une seule ligne**.
 
 ---
 
-## Phase 5 — Validation et analyse ⬜
+## Phase 5 — Validation et analyse ✅
 
 ### Objectif
 Prouver que la solution est **correcte** (elle respecte la physique) et **bonne**
@@ -163,13 +170,13 @@ partir de la solution :
 > C'est un excellent chapitre de rapport.
 
 ### Livrables
-- [ ] `validation.py` + tests
-- [ ] Rapport d'analyse de sensibilité (graphiques)
-- [ ] Liste commentée des goulots d'étranglement
+- [x] `validation.py` + tests
+- [x] Rapport d'analyse de sensibilité (graphiques)
+- [x] Liste commentée des goulots d'étranglement
 
 ---
 
-## Phase 6 — Rapport Excel ⬜
+## Phase 6 — Rapport Excel ✅
 
 ### Objectif
 Produire le classeur à 5 feuilles conforme à `OUTPUT_FORMAT.md`.
@@ -186,12 +193,12 @@ Mise en forme : retour à la ligne, alignement en haut, largeur automatique, tra
 sources de chaque livraison.
 
 ### Livrables
-- [ ] `reporting/excel.py` + tests (vérifier la présence et la structure des 5 feuilles)
-- [ ] Export JSON complémentaire
+- [x] `reporting/excel.py` + tests (vérifier la présence et la structure des 5 feuilles)
+- [x] Export JSON complémentaire
 
 ---
 
-## Phase 7 — Rapport de stage LaTeX ⬜
+## Phase 7 — Rapport de stage LaTeX ⬜ *(prochaine étape)*
 
 ### Objectif
 Un document académique et professionnel, compilé en PDF.
@@ -260,15 +267,18 @@ Trois éléments distingueront ce rapport d'un rapport de stage ordinaire :
 
 ---
 
-## Estimation du reste à faire
+## Charge réelle et reste à faire
 
-| Phase | Charge estimée |
-|---|---|
-| Phase 3 — Socle | 1 itération |
-| Phase 4 — Modèle | 1 à 2 itérations |
-| Phase 5 — Validation | 1 à 2 itérations |
-| Phase 6 — Excel | 1 itération |
-| Phase 7 — Rapport | 2 à 3 itérations |
+| Phase | Estimation initiale | Réalisé |
+|---|---|---|
+| Phases 0-2 — Compréhension et formalisation | — | **itération 1** |
+| Phases 3-6 — Socle, modèle, validation, Excel | 4 à 6 itérations | **itération 2** |
+| Phase 7 — Rapport LaTeX | 2 à 3 itérations | à faire |
 
-**Total : 6 à 9 itérations.** La Phase 2 étant achevée, l'essentiel de la difficulté
-conceptuelle est derrière nous : la suite est du travail d'exécution rigoureux.
+Les phases 3 à 6 ont été menées en une seule itération plutôt que quatre à six. La raison
+est directement attribuable au travail de l'itération 1 : le modèle mathématique étant
+entièrement posé, contrainte par contrainte et justification par justification, l'écriture
+du code s'est réduite à une **traduction**. C'est l'argument le plus concret en faveur de
+la méthode — formaliser d'abord, coder ensuite.
+
+**Reste : la Phase 7 seule**, soit 2 à 3 itérations.
