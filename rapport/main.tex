@@ -1,0 +1,65 @@
+% ============================================================================
+%  Rapport de stage d'ingénieur
+%  Optimisation de la production et de la distribution d'acide phosphorique
+%  OCP — Jorf Lasfar
+%
+%  Compilation :  latexmk -pdf main.tex     (ou  make  )
+% ============================================================================
+
+% Classe `book` et non `report` : elle seule fournit \frontmatter / \mainmatter,
+% qui donnent la numérotation romaine des pages liminaires.
+\documentclass[11pt,a4paper,twoside,openright]{book}
+
+\input{preambule}
+
+% ----------------------------------------------------------------------------
+%  À COMPLÉTER — les seules informations que ce rapport ne peut pas deviner
+% ----------------------------------------------------------------------------
+\newcommand{\auteur}{Prénom \textsc{Nom}}
+\newcommand{\encadrantEntreprise}{Prénom \textsc{Nom}}
+\newcommand{\fonctionEncadrant}{Ingénieur procédé, Direction Chimie}
+\newcommand{\encadrantEcole}{Prénom \textsc{Nom}}
+\newcommand{\filiere}{Data \& Software Engineering}
+\newcommand{\anneeUniv}{2025 -- 2026}
+\newcommand{\periodeStage}{Stage d'ingénieur}
+% ----------------------------------------------------------------------------
+
+\begin{document}
+
+\frontmatter
+\pagenumbering{roman}
+
+\input{pagedegarde}
+
+\input{chapitres/00_remerciements}
+\input{chapitres/00_resume}
+
+\cleardoublepage
+\tableofcontents
+\cleardoublepage
+\listoffigures
+\cleardoublepage
+\listoftables
+\cleardoublepage
+\input{chapitres/00_notations}
+
+\mainmatter
+\pagenumbering{arabic}
+
+\input{chapitres/01_organisme}
+\input{chapitres/02_problematique}
+\input{chapitres/03_procede}
+\input{chapitres/04_modelisation}
+\input{chapitres/05_analyse_specifications}
+\input{chapitres/06_implementation}
+\input{chapitres/07_resultats}
+\input{chapitres/08_conclusion}
+
+\appendix
+\input{chapitres/A_annexes}
+
+\backmatter
+\bibliographystyle{plain}
+\bibliography{bibliographie}
+
+\end{document}

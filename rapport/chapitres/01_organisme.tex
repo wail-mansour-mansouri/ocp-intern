@@ -1,0 +1,126 @@
+\chapter{Présentation de l'organisme d'accueil}
+\label{chap:organisme}
+
+\section{Le Groupe OCP}
+
+Le Groupe OCP (Office Chérifien des Phosphates) est le premier exportateur mondial de
+phosphates et de leurs dérivés. Son activité repose sur une ressource dont le Maroc détient
+l'essentiel des réserves mondiales : la roche phosphatée.
+
+L'activité du groupe couvre l'ensemble de la chaîne de valeur, de l'extraction minière à la
+commercialisation d'engrais :
+
+\begin{itemize}
+  \item \textbf{extraction} de la roche phosphatée sur les sites miniers ;
+  \item \textbf{valorisation chimique}, par transformation de la roche en acide phosphorique
+        puis en engrais ;
+  \item \textbf{commercialisation} sur les marchés internationaux.
+\end{itemize}
+
+Cette intégration verticale distingue le groupe de la plupart de ses concurrents et
+constitue, on le verra, la source même du problème traité dans ce rapport.
+
+\section{La plateforme chimique de Jorf Lasfar}
+
+Située sur la côte atlantique près d'El Jadida, Jorf Lasfar est la plus grande plateforme
+chimique du groupe. Elle rassemble sur un même site un ensemble d'unités interdépendantes.
+
+\begin{table}[H]
+\centering
+\caption{Principales unités de la plateforme de Jorf Lasfar}
+\label{tab:unites-jorf}
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Unité} & \textbf{Fonction} \\
+\midrule
+Ateliers sulfuriques & Production d'acide sulfurique \ce{H2SO4} \\
+Ateliers phosphoriques & Production d'acide phosphorique \ce{H3PO4} --- \emph{périmètre du stage} \\
+Ateliers d'engrais & Production de DAP, MAP, TSP, NPK \\
+Coentreprises & EMAPHOS, IMACID, PMP, JFC \\
+Utilités & Centrale thermique, station de dessalement, port minéralier \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Une intégration qui crée l'interdépendance}
+
+Sur un site intégré, les ateliers ne fonctionnent pas indépendamment : \emph{la sortie de
+l'un est l'entrée de l'autre}. Un déséquilibre local se propage immédiatement à l'ensemble
+de la chaîne. Une cuve pleine arrête la production amont, faute d'exutoire ; une cuve vide
+arrête la production aval, faute d'alimentation.
+
+\begin{encadre}
+\textbf{L'origine du problème.} Coordonner quotidiennement ces flux --- décider qui produit
+quoi, qui alimente qui, et dans quelles quantités --- est précisément l'objet de ce stage.
+Le problème n'existerait pas sur un site où chaque atelier serait autonome.
+\end{encadre}
+
+\section{Les partenaires industriels du site}
+
+Plusieurs des consommateurs modélisés dans ce travail sont des coentreprises, ce qui donne à
+leurs demandes un caractère contractuel qu'il convient de garder à l'esprit.
+
+\subsection{EMAPHOS --- Euro-Maroc Phosphore}
+
+Coentreprise entre l'OCP, le belge Prayon et l'allemand Chemische Fabrik Budenheim, EMAPHOS
+produit de l'\textbf{acide phosphorique purifié} de qualité alimentaire et technique, par
+extraction liquide-liquide au solvant. Sa capacité, initialement de
+\SI{140000}{\tonne}~\PdeuxOcinq{} par an, a été doublée à \SI{280000}{\tonne}~\PdeuxOcinq{}
+par an à partir du quatrième trimestre 2022~\cite{ocp-emaphos}, soit de l'ordre de
+\SIrange{380}{770}{\tonne}~\PdeuxOcinq{} par jour.
+
+\begin{encadre}[title={Pourquoi cette capacité nous intéresse}]
+La demande d'EMAPHOS dans le scénario de référence est de \SI{700}{\tonne} par jour. Ce
+chiffre ne prend un sens réaliste que si l'unité de compte est la tonne de \PdeuxOcinq{}.
+C'est l'une des trois preuves qui fondent la décision de modélisation la plus structurante
+de ce travail (chapitre~\ref{chap:modelisation}, section~\ref{sec:unite}).
+\end{encadre}
+
+L'extraction au solvant sépare l'acide en deux phases : une phase organique chargée d'acide
+purifié, et un \textbf{raffinat} aqueux concentrant les impuretés. Ce raffinat contient
+encore une quantité importante de \PdeuxOcinq{} ; le rejeter constituerait une perte
+économique majeure. Il est donc renvoyé en amont du circuit principal, où sa qualité
+médiocre se dilue dans la masse. Ce retour représente \SI{40}{\percent} de la quantité
+livrée et constitue, comme on le verra, le seul flux du système qui remonte d'un niveau de
+concentration.
+
+\subsection{Les autres consommateurs}
+
+\begin{table}[H]
+\centering
+\caption{Consommateurs d'acide de la plateforme}
+\label{tab:consommateurs}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Consommateur} & \textbf{Nature} & \textbf{Acide consommé} \\
+\midrule
+U16, U116A, U116BC & Ateliers d'engrais internes & selon les recettes \\
+EMAPHOS & Coentreprise OCP / Prayon / Budenheim & acide 54 NCL \\
+IMACID & Coentreprise indo-marocaine & acide 29 standard \\
+JFC 1--5 & \emph{Jorf Fertilizer Company} & acide 29 standard \\
+MAPS & Unité partenaire & acide 29 standard \\
+U53 & Unité interne & acide 54 clarifié \\
+107DEF & Unité interne polyvalente & plusieurs qualités \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Du point de vue du modèle, chaque consommateur se caractérise par deux informations
+seulement : les \textbf{types d'acide} qu'il accepte, et les \textbf{lignes} auxquelles il
+est physiquement raccordé.
+
+\section{Cadre du stage}
+
+Ce stage s'inscrit dans le cursus d'ingénieur de l'INSEA, filière \filiere. Il mobilise
+conjointement deux compétences de la formation :
+
+\begin{itemize}
+  \item la \textbf{recherche opérationnelle}, pour la modélisation et la résolution du
+        problème d'optimisation ;
+  \item le \textbf{génie logiciel}, pour produire un outil maintenable, testé et
+        réutilisable plutôt qu'un script jetable.
+\end{itemize}
+
+Le livrable attendu comprend un modèle mathématique documenté, une implémentation
+logicielle validée, des rapports d'exploitation au format imposé par le service, et le
+présent rapport.

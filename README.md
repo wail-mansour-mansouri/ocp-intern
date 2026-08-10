@@ -35,6 +35,7 @@ résout de façon optimale.
 ```
 ├── docs-helper/          📘 Documents pédagogiques — TOUT le projet expliqué
 ├── PILOTAGE/             🧭 Mémoire du projet : état, TODO, journal, décisions
+├── rapport/              📄 Rapport de stage LaTeX → PDF (79 pages)
 ├── src/ocp_optim/        ⚙️  Le code (13 modules)
 ├── tests/                ✅ 138 tests
 ├── data/                 📊 Profils qualité et scénarios
@@ -51,6 +52,8 @@ python -m ocp_optim --sortie resultats/    # rapports Excel (5 feuilles) et JSON
 python -m ocp_optim --sensibilite          # analyses de sensibilité
 
 pytest                                     # 138 tests, ~1,2 s
+
+cd rapport && make                         # compile le rapport en PDF
 ```
 
 ### `docs-helper/` — la documentation du projet
@@ -80,7 +83,7 @@ Phase 3  Socle logiciel                 ██████████ 100 %
 Phase 4  Modèle d'optimisation          ██████████ 100 %
 Phase 5  Validation et analyse          ██████████ 100 %
 Phase 6  Rapport Excel                  ██████████ 100 %
-Phase 7  Rapport de stage LaTeX         ░░░░░░░░░░   0 %   ← prochaine étape
+Phase 7  Rapport de stage LaTeX         ██████████ 100 %
 ```
 
 ---

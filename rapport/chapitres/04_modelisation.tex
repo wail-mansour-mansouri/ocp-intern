@@ -1,0 +1,576 @@
+\chapter{Modélisation mathématique}
+\label{chap:modelisation}
+
+Ce chapitre construit le modèle d'optimisation. La rédaction suit une discipline stricte :
+\emph{rien n'est utilisé avant d'être défini}. On procède dans l'ordre ensembles,
+paramètres, variables, contraintes, objectif. Chaque contrainte est accompagnée de sa
+traduction en français, de l'organe industriel qu'elle représente, et de la justification de
+sa forme.
+
+\section{L'unité de compte du modèle}
+\label{sec:unite}
+
+Avant toute formalisation, il faut trancher une question que la documentation fournie
+n'aborde nulle part : \emph{en quelle unité comptons-nous ?}
+
+\subsection{L'énigme}
+
+La documentation affirme que la concentration de \SI{29}{\percent} à \SI{54}{\percent}
+s'effectue avec un rendement massique de \SI{100}{\percent}. C'est physiquement impossible
+en masse d'acide : concentrer, c'est retirer de l'eau, donc perdre de la masse.
+
+\subsection{La résolution : trois preuves convergentes}
+
+\begin{proposition}
+Toutes les grandeurs massiques du système sont exprimées en \textbf{tonnes de \PdeuxOcinq{}}
+et non en tonnes d'acide marchand.
+\end{proposition}
+
+\paragraph{Preuve 1 --- par la structure des formules de conversion.}
+La documentation fournit les conversions hauteur de cuve $\to$ tonnage :
+\[
+\mathrm{vol}_{29}(h) = 174{,}11 \cdot h \cdot 0{,}33
+\qquad
+\mathrm{vol}_{54}(h) = 95 \cdot h \cdot 0{,}83
+\]
+et, séparément, les paramètres physiques des cuves. Or
+\[
+\underbrace{0{,}26}_{\text{titre \PdeuxOcinq{}}} \times \underbrace{1{,}270}_{\text{densité}} = 0{,}3302 \approx 0{,}33
+\qquad\text{et}\qquad
+0{,}50 \times 1{,}660 = 0{,}8300 \;\text{(exact)}
+\]
+La structure de la conversion est donc
+\[
+\mathrm{vol}(h) = \underbrace{S \cdot h}_{\text{volume}} \times \underbrace{\rho}_{\text{densité}} \times \underbrace{\theta}_{\text{titre \PdeuxOcinq{}}}
+\]
+Le facteur $\theta$ est le titre. La fonction ne rend pas des tonnes d'acide : elle rend des
+tonnes de \PdeuxOcinq{}. \hfill$\square$
+
+\paragraph{Preuve 2 --- par la conservation.}
+Développée à la section~\ref{sec:concentration} du chapitre précédent : le rendement vaut
+$1$ si et seulement si l'on compte en \PdeuxOcinq{}. \hfill$\square$
+
+\paragraph{Preuve 3 --- par l'industrie.}
+EMAPHOS est officiellement dimensionné en \SI{280000}{\tonne}~\PdeuxOcinq{} par
+an~\cite{ocp-emaphos}, soit environ \SI{770}{\tonne}~\PdeuxOcinq{} par jour. Sa demande dans
+le scénario est de \SI{700}{\tonne} par jour : l'ordre de grandeur ne concorde que dans
+cette unité. \hfill$\square$
+
+\begin{alerte}[title={Portée de ce résultat}]
+Cette information n'est écrite dans aucun des documents fournis. Sans elle, l'intégralité
+des bilans matière du modèle serait erronée. C'est le résultat préliminaire le plus
+important de ce travail.
+
+Les rendements de clarification ($0{,}90$) et de cocristallisation ($0{,}80$) s'interprètent
+alors comme des \emph{taux de récupération du \PdeuxOcinq{}}, le complément partant dans les
+boues --- ce qui est physiquement cohérent et \emph{ferme} le bilan matière global.
+\end{alerte}
+
+\section{Nature du problème}
+
+\begin{table}[H]
+\centering
+\caption{Caractéristiques du modèle (valeurs mesurées sur le scénario de référence)}
+\label{tab:nature-modele}
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Caractéristique} & \textbf{Valeur} \\
+\midrule
+Type & Programme linéaire mixte en nombres entiers (MILP) \\
+Horizon & 1 journée (mono-période) \\
+Unité & tonne de \PdeuxOcinq{} \\
+Variables continues & 141 \\
+Variables binaires & 29 \\
+Contraintes & 138 \\
+Objectif & lexicographique à 3 niveaux \\
+Solveur & PuLP + CBC \\
+Temps de résolution & \SI{0.06}{\second} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Deux familles de décisions sont intrinsèquement discrètes --- les niveaux de décadmiation et
+l'activation des transferts --- ce qui interdit une relaxation continue : celle-ci
+produirait des plans physiquement irréalisables, comme décadmier \SI{312}{\tonne}.
+
+\section{Ensembles}
+
+\begin{table}[H]
+\centering
+\caption{Ensembles d'indices}
+\label{tab:ensembles}
+\begin{tabular}{@{}llc@{}}
+\toprule
+\textbf{Symbole} & \textbf{Définition} & \textbf{Cardinal} \\
+\midrule
+$\Lvingtneuf$ & lignes de production d'acide 29 & 6 \\
+$\Lcinqquatre$ & lignes de concentration & 5 \\
+$\Ech$ & échelons de concentration & 24 \\
+$\Conso$ & consommateurs & 9 \\
+$\Prod$ & produits engrais & variable \\
+$\Acides$ & types d'acide & 6 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Partition des types d'acide}
+
+\begin{equation}
+\Acides = \underbrace{\{\text{29std},\ \text{29dec}\}}_{\Acides_{29}}
+\ \cup\
+\underbrace{\{\text{54ncl},\ \text{54cl},\ \text{54coc},\ \text{54deccl}\}}_{\Acides_{54}}
+\end{equation}
+
+On distingue par ailleurs deux sous-ensembles selon le mode de livraison :
+\begin{align}
+\Acides^{\mathrm{loc}} &= \{\text{29std},\ \text{29dec},\ \text{54ncl}\}
+&&\text{livrés depuis un stock local} \\
+\Acides^{\mathrm{cen}} &= \{\text{54cl},\ \text{54coc},\ \text{54deccl}\}
+&&\text{livrés depuis IR11 ou IR12}
+\end{align}
+
+\begin{encadre}
+\textbf{Justification de cette partition.} Elle traduit la règle « aucun acide traité n'est
+expédié directement depuis sa ligne ». Seuls les acides de $\Acides^{\mathrm{loc}}$ sont
+soumis aux contraintes d'interconnexion, ce qui divise par deux le nombre de variables de
+livraison à créer.
+\end{encadre}
+
+\subsection{Application ligne 29 $\to$ ligne 54}
+
+\begin{equation}
+\sigma : \Lvingtneuf \longrightarrow \Lcinqquatre \cup \{\varnothing\}
+\end{equation}
+avec $\sigma(\text{13AB}) = \text{14AB}$, \dots, $\sigma(\text{13E}) = \text{14EXT}$ et
+$\sigma(\text{13F}) = \varnothing$.
+
+\begin{proposition}
+La restriction de $\sigma$ à $\Lvingtneuf \setminus \{\text{13F}\}$ est une bijection sur
+$\Lcinqquatre$.
+\end{proposition}
+
+Son inverse $\sigma^{-1}$ est donc bien défini sur $\Lcinqquatre$, ce qui autorise à écrire
+indifféremment une équation « côté 29 » ou « côté 54 ». On note
+$\Lvingtneufetoile = \Lvingtneuf \setminus \{\text{13F}\}$.
+
+\subsection{Échelons et relations d'incidence}
+
+Les échelons sont partitionnés par ligne, $\Ech = \bigsqcup_{m} \Ech_m$, et chaque ligne
+distingue ses échelons cocristallisants $\Ech^{\mathrm{coc}}_m \subseteq \Ech_m$.
+
+Deux relations d'incidence décrivent le réseau : $\Gamma \subseteq \Lvingtneuf \times
+\Lvingtneuf$ pour les transferts interzones ($|\Gamma| = 14$, relation anti-réflexive et
+\emph{non symétrique}), et $\Phi_a$ pour les raccordements ligne $\to$ consommateur.
+
+\section{Paramètres}
+
+Un paramètre est une donnée connue \emph{avant} la résolution. Le test pratique :
+« l'usine peut-elle changer cela demain matin ? » Si non, c'est un paramètre.
+
+\subsection{Grandeurs dérivées de la production}
+
+Calculées en prétraitement à partir des heures de marche :
+\begin{align}
+\kappa_e &= C_e \cdot \frac{h_e}{24} && \text{production de l'échelon } e \\
+\Pi_m &= \sum_{e \in \Ech_m} \kappa_e && \text{production totale de la ligne } m \\
+\Picoc_m &= \sum_{e \in \Ech^{\mathrm{coc}}_m} \kappa_e,
+\qquad \Pincl_m = \Pi_m - \Picoc_m \\
+G_m &= \etacoc \cdot \Picoc_m && \text{CoC produit (systématique)} \\
+B^{\mathrm{coc}}_m &= (1 - \etacoc) \cdot \Picoc_m && \text{boue de cocristallisation}
+\end{align}
+
+\begin{encadre}[title={Point de méthode essentiel}]
+$G_m$ et $B^{\mathrm{coc}}_m$ sont des \textbf{paramètres}, non des variables, parce que la
+cocristallisation est systématique. C'est ce qui simplifie le plus le modèle. L'erreur
+fréquente consisterait à en faire une décision : le modèle serait plus gros, plus lent, et
+faux.
+\end{encadre}
+
+\subsection{Demande consolidée}
+
+Un profil qualité est la recette d'un engrais : $q_{p,a}$ tonnes d'acide $a$ par tonne
+d'engrais $p$. La conversion demande $\to$ besoins est une application linéaire :
+\begin{equation}
+\boxed{\;R_{k,a} = \delta_{k,a} + \sum_{p \in \Prod} q_{p,a} \, F_{k,p}\;}
+\label{eq:besoins}
+\end{equation}
+où $\delta_{k,a}$ est la demande directe et $F_{k,p}$ le tonnage d'engrais à produire.
+
+\section{Variables de décision}
+
+\subsection{Décadmiation}
+
+Le choix du niveau est encodé en \emph{one-hot} :
+\begin{equation}
+w_{\ell,v} \in \{0,1\}, \quad \ell \in \mathcal{L}^{\mathrm{dec}}_{29},\ v \in \mathcal{D}
+\qquad\text{et}\qquad
+d_\ell = \sum_{v \in \mathcal{D}} v \cdot w_{\ell,v}
+\end{equation}
+
+\subsection{Absence de variable pour la clarification décadmiée}
+
+L'acide décadmié concentré est \emph{obligatoirement} clarifié. Plutôt que créer une
+variable $\udec_m$ et une contrainte d'égalité, on substitue :
+\begin{equation}
+\udec_m \equiv \xdec_{\sigma^{-1}(m)}
+\label{eq:substitution-udec}
+\end{equation}
+
+\begin{encadre}[title={Règle générale de modélisation}]
+\emph{Une contrainte d'égalité qui définit une variable doit être éliminée par
+substitution.} Ici, cela supprime cinq variables et cinq contraintes, et rend automatique le
+couplage entre décadmiation et capacité de décantation.
+\end{encadre}
+
+\subsection{Variables d'écart}
+
+Trois familles de variables d'écart complètent le modèle : $\rho_{k,a}$ pour la demande non
+satisfaite, $\nu^{+}, \nu^{-}$ pour les dépassements de bandes de stock, et
+$\varepsilon^{+}, \varepsilon^{-}$ pour les écarts à la charge de concentration.
+
+\begin{encadre}[title={Pourquoi des variables d'écart}]
+Un modèle qui répond « Infeasible » est inutilisable en exploitation : l'ingénieur veut
+savoir \emph{de combien} et \emph{où} cela coince, pas se voir refuser une réponse. Les
+écarts rendent le modèle toujours faisable, et leur valeur à l'optimum constitue en
+elle-même une information de diagnostic.
+\end{encadre}
+
+\section{Contraintes}
+
+Les contraintes sont numérotées \Ctr{1} à \Ctr{17}. Les six les plus significatives sont
+développées ci-dessous ; l'ensemble figure en annexe~\ref{ann:contraintes}.
+
+\subsection{\Ctr{4} --- Charge de concentration}
+
+\begin{equation}
+\boxed{\;\xstd_\ell + \xdec_\ell = \Pi_{\sigma(\ell)} + \varepsilon^{+}_\ell - \varepsilon^{-}_\ell\;}
+\qquad \forall \ell \in \Lvingtneufetoile
+\label{eq:C4}
+\end{equation}
+avec $0 \le \varepsilon^{\pm}_\ell \le \epsilon\, \Pi_{\sigma(\ell)}$.
+
+\paragraph{Français.} La ligne 29 fournit à sa concentration ce que celle-ci va produire, à
+une tolérance $\epsilon$ près.
+
+\paragraph{Origine.} Interrogé sur cette contrainte, l'encadrant industriel a précisé :
+\begin{quote}
+\itshape « Oui la somme doit être égale, c'est normalement rigide, mais on peut avoir des
+seuils de tolérance pour respecter la planification des transferts. »
+\end{quote}
+
+\paragraph{Justification de la forme.} Cette réponse contient deux moitiés apparemment
+contradictoires. Une égalité stricte ignorerait la tolérance accordée ; une inégalité libre
+la banaliserait, l'optimiseur s'écartant du plan dès que cela l'arrange. La bande
+\emph{pénalisée} au niveau 2 de l'objectif rend fidèlement les deux moitiés : le modèle
+reste à l'égalité stricte sauf lorsque s'en écarter évite une violation plus grave.
+
+\begin{resultat}[title={Vérification empirique}]
+Sur le scénario de référence, la solution optimale n'utilise \textbf{aucune} tolérance : les
+cinq lignes sont exactement au plan. Le comportement obtenu est donc bien celui décrit comme
+« normalement rigide ».
+\end{resultat}
+
+\subsection{\Ctr{4b} --- Alimentation des échelons cocristallisants}
+
+\begin{equation}
+\xstd_\ell \ \ge\ \Picoc_{\sigma(\ell)} \qquad \forall \ell \in \Lvingtneufetoile
+\end{equation}
+
+Conséquence directe du caractère souple de \Ctr{4} : si la charge peut s'écarter du plan, il
+faut préciser \emph{quels} échelons absorbent l'écart. Les unités de cocristallisation ne se
+modulant pas, ce sont les échelons ordinaires qui l'absorbent.
+
+\subsection{\Ctr{6} --- NCL réellement disponible}
+
+\begin{equation}
+N_m = \xstd_{\sigma^{-1}(m)} - \Picoc_m \qquad \forall m \in \Lcinqquatre
+\label{eq:C6}
+\end{equation}
+
+\begin{encadre}[title={Cohérence avec la formulation initiale}]
+Tant que \Ctr{4} était une égalité stricte, on pouvait écrire $N_m = \Pincl_m - \xdec$. Dès
+lors que la charge peut s'écarter du plan, la production doit suivre la charge réelle.
+
+\emph{Vérification} : quand la charge vaut exactement le plan,
+$\xstd + \xdec = \Pi_m = \Picoc_m + \Pincl_m$, donc $\xstd - \Picoc_m = \Pincl_m - \xdec$.
+La nouvelle écriture \textbf{généralise} l'ancienne sans la contredire --- contrôle à
+effectuer systématiquement lorsqu'on relâche une contrainte.
+\end{encadre}
+
+\subsection{\Ctr{7} --- Bilan matière du stock d'acide 29 standard}
+
+C'est l'équation la plus riche du modèle : six flux entrants, deux sortants.
+
+\begin{align}
+S^{\mathrm{std}}_\ell = \;& S^{0,\mathrm{std}}_\ell + (P_\ell - d_\ell)
+&& \text{initial + production} \notag \\
+&+ \textstyle\sum_{\ell' : (\ell',\ell) \in \Gamma} t_{\ell'\ell}
+ - \textstyle\sum_{\ell' : (\ell,\ell') \in \Gamma} t_{\ell\ell'}
+&& \text{transferts} \notag \\
+&+ B^{\mathrm{coc}}_{\sigma(\ell)}
+&& \text{boue de cocristallisation} \notag \\
+&+ (1-\etacl)\left(\uncl_{\sigma(\ell)} + \xdec_\ell\right)
+&& \text{boue de clarification} \notag \\
+&+ \beta_\ell \textstyle\sum_{m} y^{\text{54ncl}}_{m,\text{EMAPHOS}}
+&& \text{retour EMAPHOS} \notag \\
+&- \xstd_\ell - \textstyle\sum_{k} y^{\text{29std}}_{\ell,k}
+&& \text{concentration + livraisons}
+\label{eq:C7}
+\end{align}
+
+\begin{alerte}[title={Les trois pièges de cette équation}]
+\begin{enumerate}
+  \item \textbf{Oublier la boue de clarification de l'acide décadmié.} Le terme
+        $(1-\etacl)\,\xdec_\ell$ est facile à manquer, car cette clarification est
+        automatique et n'a pas de variable dédiée.
+  \item \textbf{Se tromper de niveau pour le retour EMAPHOS.} Il est prélevé au niveau 54 et
+        restitué au niveau 29 --- le seul flux du système qui remonte.
+  \item \textbf{Inverser les indices des transferts.} $t_{\ell'\ell}$ entre,
+        $t_{\ell\ell'}$ sort.
+\end{enumerate}
+\end{alerte}
+
+\subsection{\Ctr{11} --- Capacité des décanteurs}
+
+\begin{equation}
+\boxed{\;\uncl_m + \xdec_{\sigma^{-1}(m)} \ \le\ \Lambda\;}
+\qquad \forall m \in \mathcal{L}^{\mathrm{clar}}_{54}
+\label{eq:C11}
+\end{equation}
+
+C'est la contrainte structurante du modèle, celle qui crée l'arbitrage décrit au
+chapitre~\ref{chap:procede}. La limite porte sur le \textbf{débit entrant} : un décanteur
+est dimensionné par ce qu'il reçoit, non par ce qu'il restitue.
+
+\subsection{\Ctr{14} --- Satisfaction de la demande}
+
+Trois cas selon la nature de l'acide. Le plus intéressant est celui du besoin en
+\emph{acide 54 de qualité décadmiée} :
+\begin{equation}
+\boxed{\;y^{\mathrm{coc}}_{k} + y^{\mathrm{deccl}}_{k} + \rho_{k,\mathrm{dectot}} = R_{k,\mathrm{dectot}}\;}
+\label{eq:C14-dectot}
+\end{equation}
+
+\begin{encadre}
+Ce besoin ne porte pas sur un \emph{produit} mais sur une \emph{propriété}. Deux produits
+physiquement distincts --- le CoC et le DEC\_CL --- la possèdent et sont donc
+substituables. La contrainte porte sur leur \textbf{somme}, ce qui exprime exactement cette
+substituabilité. C'est aussi pourquoi ils partagent le même bac IR11 : du point de vue du
+client, ils sont interchangeables.
+\end{encadre}
+
+\subsection{\Ctr{15} --- Contrainte de qualité d'IR11}
+
+Le cahier des charges affirme que la production de DEC\_CL est \emph{obligatoire}, IR11
+devant contenir un mélange de CoC et de DEC\_CL sous peine de dégradation de la qualité.
+Aucun seuil chiffré n'est toutefois fourni. On modélise cette règle par une contrainte de
+composition, d'expression linéaire après réarrangement :
+\begin{equation}
+(1-\alpha)\,\etacl \sum_{m} \xdec_{\sigma^{-1}(m)} \ \ge\ \alpha \sum_{m} G_m
+\label{eq:C15}
+\end{equation}
+
+\begin{encadre}[title={Pourquoi cette contrainte est indispensable}]
+Sans elle, l'optimiseur ne produirait \emph{jamais} de DEC\_CL : la cocristallisation
+systématique (\SI{2431}{\tonne}/j) couvre déjà tout le besoin en acide de qualité décadmiée
+(\SI{987}{\tonne}/j), si bien que produire du DEC\_CL est pour lui un coût sans bénéfice.
+Il violerait donc la règle métier.
+
+Ce raisonnement a été vérifié expérimentalement : un test automatisé démontre qu'avec
+$\alpha = 0$, la production de DEC\_CL tombe exactement à zéro
+(chapitre~\ref{chap:implementation}).
+\end{encadre}
+
+\subsection{\Ctr{16} --- Transferts semi-continus}
+
+\begin{equation}
+\tau^{\min} b_{\ell\ell'} \ \le\ t_{\ell\ell'} \ \le\ \tau^{\max} b_{\ell\ell'}
+\qquad \forall (\ell,\ell') \in \Gamma
+\label{eq:C16}
+\end{equation}
+
+\begin{proof}[Démonstration de correction]
+Si $b = 0$, alors $0 \le t \le 0$ donc $t = 0$. Si $b = 1$, alors
+$\tau^{\min} \le t \le \tau^{\max}$. Ces deux cas sont exactement ceux souhaités, et aucun
+autre n'est atteignable.
+\end{proof}
+
+\section{Fonction objectif}
+
+\subsection{L'objectif spécifié est dégénéré}
+\label{sec:degenerescence}
+
+Le cahier des charges demande de \emph{maximiser le total d'acide livré}, tout en imposant
+que \emph{toutes les demandes soient exactement satisfaites}.
+
+\begin{proposition}[Dégénérescence]
+Sous l'hypothèse que la satisfaction de la demande est une contrainte d'égalité, l'objectif
+« maximiser le total livré » est constant sur le domaine réalisable.
+\end{proposition}
+
+\begin{proof}
+Notons $Y$ le total livré. Par la contrainte \Ctr{14} avec $\rho \equiv 0$ :
+\[
+Y = \sum_{k,a} \big(\text{livraisons vers } k \text{ en acide } a\big) = \sum_{k,a} R_{k,a}
+\]
+Or $R_{k,a}$ est un paramètre. Donc $Y$ est constant pour toute solution réalisable : la
+fonction objectif ne dépend d'aucune variable, et son gradient est nul.
+\end{proof}
+
+\begin{alerte}[title={Conséquences pratiques}]
+\begin{enumerate}
+  \item Le solveur renvoie un sommet \emph{arbitraire} du polyèdre réalisable.
+  \item Deux exécutions peuvent produire des plans très différents --- transferts inutiles,
+        décadmiation excessive --- avec la \emph{même} valeur d'objectif.
+  \item Le résultat perd toute crédibilité auprès des exploitants : « pourquoi le logiciel
+        me demande-t-il de transférer \SI{400}{\tonne} aujourd'hui et rien demain, alors que
+        rien n'a changé ? »
+\end{enumerate}
+\end{alerte}
+
+\subsection{La correction : optimisation lexicographique}
+
+On ordonne les objectifs par priorité \emph{stricte}. On optimise $f_1$, on fige son optimum
+par une contrainte, on optimise $f_2$ sous cette contrainte, puis $f_3$. Aucun compromis
+n'est possible entre niveaux : gagner sur $f_2$ ne justifie jamais de perdre sur $f_1$.
+
+\paragraph{Niveau 1 --- servir les clients.}
+\begin{equation}
+f_1 = \sum_{k \in \Conso} \sum_{a \in \Acides} \pi_{k,a}\, \rho_{k,a} \ \longrightarrow\ \min
+\end{equation}
+
+\begin{encadre}[title={Équivalence avec l'objectif demandé}]
+Puisque $\sum_{k,a}(\text{livré}) = \sum_{k,a} R_{k,a} - \sum_{k,a}\rho_{k,a}$ et que le
+premier terme est constant, minimiser $f_1$ à poids unitaires revient \emph{exactement} à
+maximiser le total livré. Le niveau 1 est donc une généralisation stricte de l'objectif
+spécifié.
+
+Il apporte de surcroît une propriété absente de l'original : si le système ne peut pas tout
+servir, le modèle ne répond pas « Infeasible » --- il sert au mieux et indique précisément
+ce qui manque et pour qui.
+\end{encadre}
+
+\paragraph{Niveau 2 --- respecter les bandes de stock.}
+\begin{equation}
+f_2 = w_{\mathrm{stock}} \sum \left(\nu^{+} + \nu^{-}\right)
+    + w_{\mathrm{charge}} \sum \left(\varepsilon^{+} + \varepsilon^{-}\right)
+\ \longrightarrow\ \min
+\end{equation}
+
+Une cuve qui déborde arrête la ligne amont ; une cuve qui se vide arrête la ligne aval.
+Incidents graves, mais moins que de ne pas livrer un client --- d'où leur place au niveau 2.
+
+\paragraph{Niveau 3 --- bien exploiter.}
+\begin{equation}
+f_3 = c_t \sum t_{\ell\ell'} + c_b \sum b_{\ell\ell'} + c_d \sum d_\ell
+    + c_s \sum \left| S - S^{\mathrm{cible}} \right|
+\ \longrightarrow\ \min
+\end{equation}
+
+\begin{table}[H]
+\centering
+\caption{Termes du niveau 3 et leur justification industrielle}
+\label{tab:niveau3}
+\begin{tabular}{@{}lp{8cm}@{}}
+\toprule
+\textbf{Terme} & \textbf{Justification} \\
+\midrule
+Volume transféré & énergie de pompage, usure des conduites \\
+Nombre de transferts & chaque opération mobilise un opérateur \\
+Décadmiation & réactifs, capacité de filtration consommée \\
+Écart au milieu de bande & robustesse pour le lendemain \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Linéarisation de la valeur absolue.}
+On pose $S - S^{\mathrm{cible}} = g^{+} - g^{-}$ avec $g^{+}, g^{-} \ge 0$, et l'on minimise
+$g^{+} + g^{-}$.
+
+\begin{proof}
+Puisqu'on minimise $g^{+} + g^{-}$, l'optimum ne rend jamais les deux simultanément
+positifs : on pourrait les diminuer tous deux de la même quantité sans changer leur
+différence. À l'optimum, l'un des deux est donc nul et
+$g^{+} + g^{-} = |S - S^{\mathrm{cible}}|$.
+\end{proof}
+
+\begin{encadre}
+C'est le niveau 3 qui donne à la solution sa qualité opératoire : il transforme un plan
+simplement réalisable en un plan \textbf{sobre et robuste} --- pas de transfert inutile, pas
+de décadmiation superflue, des cuves laissées en bonne position pour le lendemain.
+\end{encadre}
+
+\subsection{Mise en œuvre}
+
+\begin{enumerate}
+  \item minimiser $f_1$, obtenir $f_1^\star$ ;
+  \item ajouter $f_1 \le f_1^\star + \varepsilon_1$, minimiser $f_2$, obtenir $f_2^\star$ ;
+  \item ajouter $f_2 \le f_2^\star + \varepsilon_2$, minimiser $f_3$.
+\end{enumerate}
+
+Les $\varepsilon_i$ absorbent les erreurs d'arrondi du solveur. Sans eux, figer
+$f_1 = f_1^\star$ à l'exact rend l'étape suivante numériquement infaisable : le solveur ne
+retrouve pas au bit près la valeur qu'il vient d'annoncer.
+
+\section{Hypothèses du modèle}
+
+Toute hypothèse est un risque assumé. Elle doit être écrite, justifiée et testable.
+
+\begin{table}[H]
+\centering
+\caption{Hypothèses de modélisation et niveau de risque associé}
+\label{tab:hypotheses}
+\begin{tabular}{@{}clp{5.8cm}c@{}}
+\toprule
+\textbf{N\textsuperscript{o}} & \textbf{Hypothèse} & \textbf{Justification} & \textbf{Risque} \\
+\midrule
+H1 & Unité en tonnes de \PdeuxOcinq{} & trois preuves convergentes & faible \\
+H2 & Modèle mono-période & toutes les données sont journalières & faible \\
+H3 & Acide dec hors échelons CoC & un CoC ne peut être clarifié & faible \\
+H4 & IR11 initial entièrement CoC & hypothèse la plus défavorable & moyen \\
+H5 & Boues CoC vers stock 29 std & guide du procédé, référence définitive & moyen \\
+H6 & Limite décanteur en entrée & mention « \emph{before yield} » + physique & faible \\
+H7 & $\tau^{\max} = \SI{1000}{\tonne}$ & valeur d'attente & \textbf{élevé} \\
+H8 & $\alpha = 0{,}15$ & valeur d'attente, sans fondement métier & \textbf{très élevé} \\
+H9 & Bornes de stock recalculées & méthode validée sur l'acide 54 & \textbf{élevé} \\
+H10 & Bornes hautes molles & sinon le modèle est infaisable & moyen \\
+H11 & Rendements déterministes & données de procédé stabilisées & faible \\
+H12 & Pas de délai de transport & horizon journalier $\gg$ temps de transfert & faible \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{encadre}
+Les hypothèses H7, H8 et H9 font l'objet d'une analyse de sensibilité au
+chapitre~\ref{chap:resultats}. C'est la réponse méthodologique correcte à une donnée
+incertaine : ne pas la deviner, mais \textbf{mesurer l'influence de son ignorance}.
+\end{encadre}
+
+\section{Traçabilité contrainte $\leftrightarrow$ réalité industrielle}
+
+\begin{table}[H]
+\centering
+\caption{Correspondance entre le discours d'atelier et sa traduction mathématique}
+\label{tab:tracabilite}
+\begin{tabular}{@{}p{7.1cm}p{6.2cm}@{}}
+\toprule
+\textbf{Réalité de l'atelier} & \textbf{Traduction mathématique} \\
+\midrule
+« La production d'acide 29 nous est imposée » & $P_\ell$ paramètre \\
+« On allume 1 ou 2 filtres, pas 1,4 » & $d_\ell \in \{0,750,1500\}$, binaires \\
+« Concentrer conserve le \PdeuxOcinq{} » & $\etaconc = 1$ \\
+« Les échelons tournent selon le planning » & $\Pi_m$ paramètre, \Ctr{4} \\
+« La cocristallisation traite tout, tout le temps » & $G_m$ paramètre, aucune variable \\
+« L'acide décadmié est clarifié immédiatement » & substitution~\eqref{eq:substitution-udec} \\
+« Les 2 décanteurs font \SI{1000}{\tonne}/jour » & \Ctr{11}, équation~\eqref{eq:C11} \\
+« Les boues, on les recycle » & termes de retour dans~\eqref{eq:C7} \\
+« EMAPHOS nous renvoie \SI{40}{\percent} » & terme $\beta_\ell$ dans~\eqref{eq:C7} \\
+« Toutes les lignes ne sont pas reliées » & $\Gamma$, $\Phi_a$ \\
+« On ne transfère pas 4 tonnes » & \Ctr{16}, semi-continue \\
+« La cuve ne doit ni déborder ni se vider » & \Ctr{9}, \Ctr{17}, molles \\
+« IR11 doit contenir un mélange » & \Ctr{15}, équation~\eqref{eq:C15} \\
+« Le client d'abord » & niveau 1 de l'objectif \\
+« Sans gaspiller » & niveau 3 de l'objectif \\
+\bottomrule
+\end{tabular}
+\end{table}

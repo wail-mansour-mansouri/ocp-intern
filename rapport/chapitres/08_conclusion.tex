@@ -1,0 +1,156 @@
+\chapter{Conclusion et perspectives}
+\label{chap:conclusion}
+
+\section{Bilan du travail}
+
+Ce stage avait pour objet de transformer une décision quotidienne prise au jugement en une
+décision calculée, reproductible et démontrablement optimale. Les quatre objectifs fixés au
+chapitre~\ref{chap:problematique} ont été atteints.
+
+\paragraph{Formaliser.} Le procédé industriel a été traduit en un programme linéaire mixte
+en nombres entiers comprenant six ensembles d'indices, dix-sept familles de contraintes et
+douze hypothèses explicitement tracées. Chaque contrainte est reliée à un organe physique
+identifié, ce qui rend le modèle discutable avec un exploitant --- condition nécessaire pour
+qu'il soit un jour utilisé.
+
+\paragraph{Résoudre.} Le modèle atteint l'optimum global en \SI{0,06}{\second} et satisfait
+\SI{100}{\percent} de la demande, largement en deçà de la contrainte de temps compatible avec
+un usage quotidien.
+
+\paragraph{Valider.} Un validateur écrit indépendamment du modèle, à partir des seules
+équations physiques, confirme la solution par quatre-vingt-six contrôles. Ce choix
+architectural n'était pas théorique : il a détecté un défaut réel dès la première exécution.
+
+\paragraph{Restituer.} Les rapports Excel et JSON sont produits au format imposé par le
+service, et le programme est utilisable dans une chaîne automatisée.
+
+\section{Apports méthodologiques}
+
+Trois résultats dépassent le cadre strict du livrable attendu.
+
+\subsection{L'identification de l'unité de compte}
+
+Le fait que toutes les grandeurs du système soient exprimées en tonnes de \PdeuxOcinq{}
+n'est écrit dans aucun des neuf documents fournis. Cette information a dû être
+\emph{déduite}, par trois preuves indépendantes et convergentes. Sans elle, l'intégralité
+des bilans matière serait fausse et le modèle produirait des plans irréalisables.
+
+\begin{encadre}
+La leçon dépasse ce projet : \emph{les conventions les plus structurantes d'un système sont
+souvent celles que personne ne pense à écrire}, parce qu'elles vont de soi pour ceux qui y
+travaillent. Les débusquer fait partie du travail de modélisation.
+\end{encadre}
+
+\subsection{La démonstration de dégénérescence de l'objectif}
+
+L'objectif spécifié --- maximiser le total livré sous contrainte de satisfaction exacte de
+la demande --- est constant sur le domaine réalisable. Sa dérivée est nulle ; il ne sélectionne
+aucune solution.
+
+Ce défaut n'était pas anodin : il aurait produit un outil renvoyant des plans instables d'un
+jour à l'autre sans raison apparente, et donc rapidement abandonné par ses utilisateurs. La
+correction proposée --- un objectif lexicographique à trois niveaux --- généralise l'objectif
+demandé plutôt que de le remplacer, ce qui permet de la défendre devant le prescripteur.
+
+\subsection{L'audit des spécifications}
+
+Onze anomalies ont été identifiées, dont quatre erreurs arithmétiques atteignant
+\SI{59}{\percent} d'écart. Deux enseignements en découlent, applicables à tout projet :
+\emph{recalculer plutôt que recopier}, et \emph{fixer une hiérarchie de sources avant
+d'examiner les cas}, pour éviter tout arbitrage de circonstance.
+
+\section{Le résultat le plus utile pour l'exploitation}
+
+Paradoxalement, la contribution principale de ce travail n'est pas le plan optimal
+quotidien, mais le \emph{diagnostic} qu'il a permis d'établir.
+
+Le modèle sert toute la demande sans difficulté. Mais il révèle deux violations
+structurelles --- le débordement d'IR11 de \SI{1016}{\tonne} par jour et le sous-remplissage
+chronique du stock de 14EXT --- qu'\emph{aucune} décision d'exploitation ne peut corriger,
+parce qu'elles découlent d'un paramètre de configuration et non d'une variable de décision.
+
+L'analyse de sensibilité en établit la cause unique et le remède chiffré : ramener de quatre
+à un le nombre d'échelons de 14EXT affectés à la cocristallisation résorbe intégralement les
+deux violations, sans investissement et sans dégrader le service.
+
+\begin{encadre}[title={Ce qu'un modèle d'optimisation doit produire}]
+Non pas seulement un plan, mais \textbf{le diagnostic de ce qui empêche le plan d'être bon}.
+Une solution optimale qui viole les capacités physiques n'est pas un échec du modèle : c'est
+une information de premier ordre sur le système réel.
+\end{encadre}
+
+\section{Sur la méthode de travail}
+
+Le découpage en sept phases, avec l'interdiction de coder ce qui n'a pas d'abord été
+formalisé, a produit un effet mesurable : les phases~3 à~6 --- socle logiciel, modèle,
+validation, restitution --- ont été menées en une seule itération de travail, alors que
+quatre à six étaient estimées.
+
+L'explication est directe. Le modèle mathématique ayant été posé contrainte par contrainte,
+avec pour chacune sa traduction en français et sa justification, l'écriture du code s'est
+réduite à une \emph{traduction}. Les erreurs qui coûtent cher --- confusion entre paramètre
+et variable, oubli d'un terme de bilan, mauvaise interprétation d'une règle métier --- avaient
+déjà été éliminées sur le papier, où elles coûtent peu.
+
+\section{Limites}
+
+\paragraph{L'horizon mono-période.} Le modèle optimise une journée en tenant compte de
+l'état final des stocks, mais sans anticiper la demande du lendemain. Un enchaînement de
+décisions localement optimales n'est pas nécessairement optimal sur la semaine.
+
+\paragraph{Les paramètres en attente.} Deux données restent inconnues. L'analyse de
+sensibilité montre que l'une d'elles est sans influence, mais l'autre --- la part minimale
+de DEC\_CL dans IR11 --- pilote directement le niveau de décadmiation.
+
+\paragraph{Le déterminisme.} Rendements, production et demande sont supposés connus avec
+certitude. Un aléa de production ou une casse d'équipement invalideraient le plan du jour.
+
+\paragraph{La validation terrain.} Les résultats n'ont pas encore été confrontés à ce que
+fait réellement l'usine un jour donné. C'est l'étape indispensable avant tout déploiement.
+
+\section{Perspectives}
+
+\subsection{Rendre la cocristallisation décidable}
+
+C'est la perspective la plus directement rentable. L'analyse de sensibilité montre que
+l'affectation des échelons à la cocristallisation --- aujourd'hui un paramètre --- détermine
+à elle seule les deux violations structurelles. En faire une \textbf{variable de décision
+binaire par échelon} permettrait au modèle de trouver seul la configuration qui les évite.
+
+Le coût est faible : une vingtaine de binaires supplémentaires, négligeable pour le solveur.
+La difficulté est ailleurs : il faut d'abord vérifier avec l'exploitation qu'une telle
+reconfiguration est opérationnellement possible, et à quelle fréquence.
+
+\subsection{L'extension multi-période}
+
+Étendre l'horizon à une semaine transformerait le modèle en un problème de planification
+avec stocks de liaison entre périodes. La formulation actuelle s'y prête : il suffirait
+d'indexer les variables par le temps et de remplacer le terme de cible du niveau 3 par un
+véritable couplage inter-périodes. La taille du problème resterait modeste.
+
+\subsection{La prise en compte de l'incertitude}
+
+Une approche par scénarios ou une optimisation robuste permettrait de produire des plans
+tenant compte de la variabilité des rendements et des aléas de production.
+
+\subsection{L'industrialisation}
+
+Le passage d'un outil d'étude à un outil d'exploitation supposerait une interface de saisie
+des scénarios, une connexion aux systèmes de mesure des niveaux de cuve, et un historique
+des plans produits permettant de comparer le réalisé au planifié.
+
+\section{Apport personnel}
+
+Ce stage m'a confronté à une réalité que la formation académique aborde peu : \emph{un cahier
+des charges réel est incomplet et parfois faux}. Le réflexe d'accepter les données fournies
+telles quelles aurait conduit à un modèle silencieusement erroné --- ce qui est bien plus
+dangereux qu'un modèle visiblement cassé.
+
+J'en retiens trois pratiques que je compte conserver : recalculer systématiquement plutôt
+que recopier ; ne jamais se vérifier avec le même raisonnement que celui qui a produit le
+résultat ; et transformer une incertitude en analyse de sensibilité plutôt qu'en hypothèse
+dissimulée.
+
+Sur le fond, ce travail m'a permis de mesurer la distance entre un modèle correct et un
+modèle \emph{utile}. Un modèle correct satisfait ses contraintes. Un modèle utile explique à
+son utilisateur ce qui le limite, et lui propose une action.

@@ -1,0 +1,180 @@
+\chapter{Contexte et problématique}
+\label{chap:problematique}
+
+\section{La chaîne de valeur en trois étages}
+
+Le périmètre du stage couvre la production et la distribution d'acide phosphorique, depuis
+l'attaque du minerai jusqu'à la livraison aux consommateurs. Cette chaîne comporte trois
+étages.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+  node distance=1.1cm,
+  etage/.style={rectangle, draw=ocpbleu, thick, fill=grisclair, rounded corners=2pt,
+                text width=9.5cm, align=center, minimum height=1.3cm, font=\small},
+  fleche/.style={-{Stealth[length=3mm]}, thick, draw=ocpbleu},
+  entree/.style={font=\small\itshape, text=grisfonce},
+]
+\node[entree] (in) {Minerai de phosphate \; + \; acide sulfurique};
+\node[etage, below=0.6cm of in] (e1)
+  {\textbf{Étage 1 --- Attaque-filtration}\\[2pt]
+   6 lignes : 13AB, 13CD, 13XY, 13ZU, 13E, 13F\\
+   produit l'acide à \SI{29}{\percent} --- \SI{8300}{\tonne}~\PdeuxOcinq{}/jour};
+\node[etage, below=of e1] (e2)
+  {\textbf{Étage 2 --- Concentration}\\[2pt]
+   5 lignes : 14AB, 14CD, 14XY, 14ZU, 14EXT\\
+   produit l'acide à \SI{54}{\percent} --- \SI{6982}{\tonne}~\PdeuxOcinq{}/jour};
+\node[etage, below=of e2] (e3)
+  {\textbf{Étage 3 --- Purification}\\[2pt]
+   décadmiation \quad$\cdot$\quad clarification \quad$\cdot$\quad cocristallisation};
+\node[entree, below=0.6cm of e3] (out)
+  {Engrais \quad$\cdot$\quad acide marchand \quad$\cdot$\quad acide purifié};
+
+\draw[fleche] (in) -- (e1);
+\draw[fleche] (e1) -- (e2);
+\draw[fleche] (e2) -- (e3);
+\draw[fleche] (e3) -- (out);
+\end{tikzpicture}
+\caption{Les trois étages de la chaîne de production}
+\label{fig:trois-etages}
+\end{figure}
+
+\subsection{Pourquoi concentrer}
+
+L'acide sortant de l'attaque titre environ \SI{26}{\percent} de \PdeuxOcinq{}. C'est
+insuffisant pour deux raisons : transporter de l'eau coûte cher, et la plupart des
+fabrications d'engrais exigent un acide titrant \SI{50}{\percent} et davantage. On évapore
+donc l'eau sous vide.
+
+\subsection{Pourquoi purifier}
+
+Les consommateurs n'ont pas les mêmes exigences de qualité.
+
+\begin{table}[H]
+\centering
+\caption{Les trois procédés de purification et leur justification}
+\label{tab:pourquoi-purifier}
+\begin{tabular}{@{}p{4.2cm}p{3.2cm}p{6.4cm}@{}}
+\toprule
+\textbf{Besoin} & \textbf{Traitement} & \textbf{Raison} \\
+\midrule
+Engrais destinés au marché européen & Décadmiation &
+Le règlement européen plafonne la teneur en cadmium des engrais. \\
+\addlinespace
+Engrais de qualité, acide marchand & Clarification &
+Retirer les solides en suspension (gypse, silice) qui encrassent les installations. \\
+\addlinespace
+Acide de très haute pureté & Cocristallisation &
+Abaisser les impuretés à des niveaux très bas. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Le réseau de distribution est incomplet}
+
+Une question se pose naturellement : pourquoi n'importe quelle ligne ne peut-elle pas servir
+n'importe quel consommateur ?
+
+La réponse est économique. Une conduite d'acide phosphorique exige des matériaux résistants
+--- l'acide attaque la plupart des métaux ---, des pompes, des réchauffeurs (l'acide à
+\SI{54}{\percent} est visqueux et fige en refroidissant), des racks de tuyauterie et de la
+maintenance. On ne construit une liaison que si elle est régulièrement utile.
+
+Il en résulte un réseau \textbf{partiel}, décrit par deux matrices d'incidence : la matrice
+des transferts entre lignes d'acide 29, et la matrice des raccordements ligne
+$\to$ consommateur. Ces matrices sont des données du problème, et non des variables.
+
+\section{Ce que fait aujourd'hui un planificateur}
+
+Chaque matin, un ingénieur d'exploitation doit arrêter cinq familles de décisions :
+
+\begin{enumerate}
+  \item quelle quantité d'acide 29 envoyer en concentration sur chaque ligne ;
+  \item quelles lignes décadmient, et à quel niveau ;
+  \item quelle quantité clarifier sur chaque ligne, sachant que les décanteurs sont partagés
+        entre deux usages concurrents ;
+  \item quels transferts entre ateliers lancer pour éviter débordements et ruptures ;
+  \item quelle ligne sert quel consommateur, pour chaque type d'acide.
+\end{enumerate}
+
+Ces décisions sont prises au jugement et au tableur. Quatre difficultés en découlent.
+
+\begin{description}
+  \item[Le couplage.] Décadmier davantage consomme de la capacité de décantation, donc
+        réduit la production d'acide clarifié, donc met en péril la satisfaction d'un autre
+        client. Aucune des cinq décisions n'est isolable des autres.
+  \item[Les boucles de recyclage.] Les boues des traitements et le raffinat d'EMAPHOS
+        reviennent en amont. Le bilan matière n'est donc pas une simple cascade : il comporte
+        des rétroactions.
+  \item[La combinatoire.] Le nombre de combinaisons possibles dépasse ce qu'un raisonnement
+        manuel peut explorer.
+  \item[La variabilité humaine.] Le plan retenu dépend de la personne présente ce jour-là,
+        ce qui rend les décisions difficilement auditables.
+\end{description}
+
+\section{Problématique et objectifs}
+
+\begin{encadre}[title={Problématique}]
+Comment déterminer chaque jour, de façon automatique, reproductible et démontrablement
+optimale, le plan de production et de distribution d'acide phosphorique qui satisfait
+l'ensemble des demandes tout en respectant les contraintes physiques du site ?
+\end{encadre}
+
+Cette problématique se décline en quatre objectifs.
+
+\begin{enumerate}
+  \item \textbf{Comprendre et formaliser} le procédé industriel en un modèle mathématique
+        dont chaque contrainte est reliée à un organe physique identifié.
+  \item \textbf{Résoudre} ce modèle à l'optimum global, dans un temps compatible avec un
+        usage quotidien.
+  \item \textbf{Valider} la solution de manière indépendante, afin de garantir qu'elle est
+        physiquement réalisable et non seulement mathématiquement optimale.
+  \item \textbf{Restituer} les résultats sous une forme directement exploitable par le
+        service.
+\end{enumerate}
+
+\section{Ce que le modèle ne décide pas}
+
+Il est aussi important de délimiter ce qui est hors périmètre. Le modèle ne décide ni la
+production d'acide 29 (imposée par l'amont), ni les heures de marche des échelons (relevant
+du planning de maintenance), ni l'affectation des échelons à la cocristallisation
+(configuration), ni les capacités des équipements, ni les recettes des engrais, ni la
+demande commerciale.
+
+\begin{encadre}
+\textbf{Formulation mathématique de cette distinction.} Tout ce qui précède constitue des
+\emph{paramètres} : des données connues avant la résolution. Seules les cinq familles de
+décisions de la section précédente sont des \emph{variables}. Établir rigoureusement cette
+frontière est la première étape de toute modélisation, et elle conditionne la validité de
+tout ce qui suit.
+\end{encadre}
+
+\section{Démarche adoptée}
+
+Le travail a été organisé en sept phases, dont l'enchaînement suit une logique simple :
+\emph{ne jamais coder ce qui n'a pas d'abord été formalisé}.
+
+\begin{table}[H]
+\centering
+\caption{Phases du travail}
+\label{tab:phases}
+\begin{tabular}{@{}clp{7.5cm}@{}}
+\toprule
+\textbf{Phase} & \textbf{Intitulé} & \textbf{Livrable} \\
+\midrule
+0 & Cadrage & Système de continuité, feuille de route \\
+1 & Compréhension du métier & Documentation du procédé, audit des données \\
+2 & Formalisation & Modèle mathématique complet \\
+3 & Socle logiciel & Constantes, conversions, scénarios, tests \\
+4 & Modèle d'optimisation & Implémentation MILP, résolution \\
+5 & Validation et analyse & Validateur indépendant, sensibilité \\
+6 & Restitution & Rapports Excel et JSON \\
+7 & Rapport & Le présent document \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Ce découpage n'est pas cosmétique : les phases 3 à 6 ont pu être menées en une seule
+itération de travail parce que la phase 2 avait posé le modèle contrainte par contrainte.
+L'écriture du code s'est alors réduite à une traduction. Ce point est repris en conclusion.

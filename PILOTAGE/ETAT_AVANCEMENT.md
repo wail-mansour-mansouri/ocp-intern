@@ -3,7 +3,7 @@
 > **Fichier de mémoire du projet.** À lire en premier au début de chaque séance de
 > travail, et à mettre à jour à la fin de chaque itération.
 >
-> Dernière mise à jour : **itération 2** — 2026-08-08
+> Dernière mise à jour : **itération 3** — 2026-08-08
 
 ---
 
@@ -30,11 +30,11 @@ Phase 3 : Implémentation du socle (données, constantes) .... █████�
 Phase 4 : Implémentation du modèle MILP .................... ██████████ 100 %  TERMINÉ
 Phase 5 : Validation, tests, analyse de résultats .......... ██████████ 100 %  TERMINÉ
 Phase 6 : Génération du rapport Excel ...................... ██████████ 100 %  TERMINÉ
-Phase 7 : Rapport de stage LaTeX → PDF ..................... ░░░░░░░░░░   0 %  À FAIRE
+Phase 7 : Rapport de stage LaTeX → PDF ..................... ██████████ 100 %  TERMINÉ
 ```
 
-**Position actuelle : fin de la Phase 6.**
-Le modèle est implémenté, résolu, validé et documenté. Il ne reste que le rapport LaTeX.
+**Position actuelle : toutes les phases sont terminées.**
+Le projet est complet : modèle, code testé, résultats validés, documentation, rapport PDF.
 
 ### Résultat en une ligne
 Statut **Optimal** en 0,06 s, **100 % de la demande servie**, **86 contrôles de
@@ -51,6 +51,11 @@ cause et leur remède.
 - Toutes les valeurs numériques **recalculées** : **11 anomalies** identifiées.
 - Modèle mathématique complet : 8 ensembles, 23 familles de paramètres, 9 familles de
   variables, 19 familles de contraintes, objectif lexicographique à 3 niveaux.
+
+### Itération 3 — Rapport de stage
+- **Rapport LaTeX de 79 pages** compilé en PDF, zéro avertissement typographique.
+- 8 chapitres + 3 annexes, schémas TikZ, page de garde INSEA / OCP.
+- `Makefile` avec cible `verif` qui contrôle débordements et références.
 
 ### Itération 2 — Implémentation, résolution, validation
 - **Paquet Python complet** : `src/ocp_optim/` (13 modules).
@@ -92,7 +97,18 @@ Détail complet dans `docs-helper/09_RESULTATS.md`.
 
 ## 5. Ce qu'il reste à faire
 
-**Phase 7 uniquement** — le rapport de stage LaTeX → PDF. Voir `TODO.md`.
+**Toutes les phases prévues sont terminées.** Ce qui reste dépend maintenant de l'encadrant :
+
+1. **Compléter la page de garde** du rapport : ton nom, celui de tes encadrants, les dates.
+   Les emplacements sont marqués dans `rapport/main.tex`, en tête de fichier.
+2. **Personnaliser les remerciements** (`rapport/chapitres/00_remerciements.tex`) — c'est une
+   trame, pas un texte définitif.
+3. **Poser les questions Q11, Q12, Q13** et intégrer les réponses.
+4. **Confronter les résultats au réalisé** de l'usine sur une journée donnée.
+
+Pistes d'extension, si le temps le permet : rendre l'affectation des échelons à la
+cocristallisation décidable (le gain est chiffré au chapitre 7 du rapport), ou passer à un
+horizon multi-période.
 
 ---
 

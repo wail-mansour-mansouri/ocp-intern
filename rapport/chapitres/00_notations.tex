@@ -1,0 +1,100 @@
+\chapter*{Notations et abréviations}
+\addcontentsline{toc}{chapter}{Notations et abréviations}
+\markboth{Notations et abréviations}{Notations et abréviations}
+
+\section*{Abréviations du procédé}
+
+\begin{longtable}{@{}ll@{}}
+\toprule
+\textbf{Sigle} & \textbf{Signification} \\
+\midrule
+\endhead
+P29 & Acide phosphorique à \SI{29}{\percent} de \PdeuxOcinq{} (acide « faible ») \\
+P54 & Acide phosphorique à \SI{54}{\percent} de \PdeuxOcinq{} (acide « fort ») \\
+NCL & Non clarifié --- acide 54 brut sortant de la concentration \\
+CL & Clarifié --- acide 54 débarrassé de ses impuretés solides \\
+DEC & Décadmié --- acide dont le cadmium a été retiré \\
+CoC & Cocristallisé --- acide ultra-purifié par cristallisation \\
+DEC\_CL & Décadmié puis clarifié \\
+IR11 & Bac central recevant le CoC et le DEC\_CL \\
+IR12 & Bac central recevant l'acide clarifié ordinaire \\
+ARP & Acide de retour phosphorique (raffinat d'EMAPHOS) \\
+MILP & \emph{Mixed Integer Linear Programming} --- programmation linéaire mixte \\
+\bottomrule
+\end{longtable}
+
+\section*{Ensembles}
+
+\begin{longtable}{@{}ll@{}}
+\toprule
+\textbf{Symbole} & \textbf{Définition} \\
+\midrule
+\endhead
+$\Lvingtneuf$ & Lignes de production d'acide 29 (6 éléments) \\
+$\Lcinqquatre$ & Lignes de concentration (5 éléments) \\
+$\Lvingtneufetoile$ & Lignes d'acide 29 disposant d'une concentration associée \\
+$\Ech$ & Échelons de concentration (24 éléments) \\
+$\Ech_m$ & Échelons de la ligne $m$ \\
+$\Ech^{\mathrm{coc}}_m$ & Échelons de $m$ affectés à la cocristallisation \\
+$\Conso$ & Consommateurs (9 éléments) \\
+$\Prod$ & Produits engrais \\
+$\Acides$ & Types d'acide (6 éléments) \\
+$\sigma$ & Application ligne 29 $\to$ ligne 54 \\
+$\Gamma$ & Liaisons interzones autorisées (14 arcs) \\
+$\Phi_a$ & Raccordements ligne $\to$ consommateur pour l'acide $a$ \\
+\bottomrule
+\end{longtable}
+
+\section*{Paramètres}
+
+\begin{longtable}{@{}lll@{}}
+\toprule
+\textbf{Symbole} & \textbf{Définition} & \textbf{Unité} \\
+\midrule
+\endhead
+$P_\ell$ & Production d'acide 29 de la ligne $\ell$ & \tP/j \\
+$C_e$ & Capacité de l'échelon $e$ à plein régime & \tP/j \\
+$h_e$ & Heures de marche de l'échelon $e$ & h \\
+$\kappa_e$ & Production de l'échelon $e$ & \tP/j \\
+$\Pi_m$ & Production totale de la ligne $m$ & \tP/j \\
+$\Picoc_m$ & Part produite par les échelons cocristallisants & \tP/j \\
+$\Pincl_m$ & Part produite par les autres échelons & \tP/j \\
+$G_m$ & CoC produit (systématique) & \tP/j \\
+$B^{\mathrm{coc}}_m$ & Boue de cocristallisation & \tP/j \\
+$\etaconc$ & Rendement de concentration $= 1{,}00$ & --- \\
+$\etacl$ & Rendement de clarification $= 0{,}90$ & --- \\
+$\etacoc$ & Rendement de cocristallisation $= 0{,}80$ & --- \\
+$\Lambda$ & Capacité entrante des décanteurs $= 1000$ & \tP/j \\
+$\mathcal{D}$ & Niveaux de décadmiation $= \{0, 750, 1500\}$ & \tP/j \\
+$\tau^{\min}, \tau^{\max}$ & Bornes d'un transfert interzone & \tP \\
+$\alpha$ & Part minimale de DEC\_CL dans IR11 & --- \\
+$\epsilon$ & Tolérance sur la charge de concentration & --- \\
+$R_{k,a}$ & Besoin consolidé du consommateur $k$ en acide $a$ & \tP \\
+$\beta_\ell$ & Part du retour EMAPHOS vers la ligne $\ell$ & --- \\
+$Z^{\min}, Z^{\max}$ & Bornes de la bande de sécurité d'un stock & \tP \\
+\bottomrule
+\end{longtable}
+
+\section*{Variables de décision}
+
+\begin{longtable}{@{}lll@{}}
+\toprule
+\textbf{Symbole} & \textbf{Définition} & \textbf{Nature} \\
+\midrule
+\endhead
+$w_{\ell,v}$ & Choix du niveau $v$ de décadmiation sur $\ell$ & binaire \\
+$d_\ell$ & Quantité décadmiée sur $\ell$ & dérivée \\
+$\xstd_\ell,\ \xdec_\ell$ & Acide 29 envoyé en concentration & continue \\
+$t_{\ell\ell'}$ & Transfert interzone & semi-continue \\
+$b_{\ell\ell'}$ & Activation du transfert & binaire \\
+$\uncl_m$ & NCL envoyé en clarification & continue \\
+$y$ & Livraisons aux consommateurs & continue \\
+$S$ & Stocks finaux & continue \\
+$\rho_{k,a}$ & Demande non satisfaite & continue \\
+$\nu^{+}, \nu^{-}$ & Écarts aux bandes de stock & continue \\
+$\varepsilon^{+}, \varepsilon^{-}$ & Écarts à la charge planifiée & continue \\
+$g^{+}, g^{-}$ & Écarts des stocks finaux à leur cible & continue \\
+\bottomrule
+\end{longtable}
+
+\cleardoublepage

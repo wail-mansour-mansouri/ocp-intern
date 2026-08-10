@@ -77,19 +77,22 @@
 - [x] Mise en forme (retour à la ligne, largeur auto, alignement haut)
 - [x] Export JSON complémentaire (résultats lisibles par machine)
 
-## Phase 7 — Rapport de stage LaTeX ⬜ *(prochaine étape)*
+## Phase 7 — Rapport de stage LaTeX ✅
 
-- [ ] Squelette LaTeX (classe, page de garde INSEA / OCP, table des matières)
-- [ ] Ch. 1 — Présentation de l'organisme d'accueil
-- [ ] Ch. 2 — Contexte et problématique
-- [ ] Ch. 3 — Description du procédé industriel
-- [ ] Ch. 4 — Modélisation mathématique
-- [ ] Ch. 5 — Analyse critique des spécifications (les 11 anomalies)
-- [ ] Ch. 6 — Implémentation logicielle
-- [ ] Ch. 7 — Résultats, validation et sensibilité
-- [ ] Ch. 8 — Conclusion et perspectives
-- [ ] Figures TikZ (schémas de flux, architecture)
-- [ ] Compilation `latexmk` → PDF, relecture typographique
+- [x] Squelette LaTeX (classe `book`, page de garde INSEA / OCP, table des matières)
+- [x] Ch. 1 — Présentation de l'organisme d'accueil
+- [x] Ch. 2 — Contexte et problématique
+- [x] Ch. 3 — Description du procédé industriel
+- [x] Ch. 4 — Modélisation mathématique
+- [x] Ch. 5 — Analyse critique des spécifications (les 11 anomalies)
+- [x] Ch. 6 — Implémentation logicielle
+- [x] Ch. 7 — Résultats, validation et sensibilité
+- [x] Ch. 8 — Conclusion et perspectives
+- [x] Annexes A, B, C (formulation complète, données, dépôt)
+- [x] Figures TikZ (schéma de flux, architecture logicielle)
+- [x] Compilation `latexmk` → PDF : **79 pages, 0 avertissement**
+- [ ] **À ta charge** : compléter la page de garde (nom, encadrants, dates)
+- [ ] **À ta charge** : personnaliser les remerciements
 
 ## Transverse
 

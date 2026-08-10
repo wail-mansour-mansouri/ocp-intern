@@ -148,3 +148,47 @@ structurante : la ventilation du NCL produit a dû être généralisée en
 
 ### Prochaine séance
 Phase 7 — rapport de stage LaTeX → PDF.
+
+---
+
+## Itération 3 — 2026-08-08 — Rapport de stage
+
+### Objectif
+Produire le rapport de stage en LaTeX, compilé en PDF.
+
+### Travail réalisé
+
+**Chaîne de compilation.** Installation de TeX Live (base, recommended, extra, français,
+pictures, science, polices) et de `latexmk`.
+
+**Structure.** Classe `book` --- et non `report`, qui ne fournit pas `\frontmatter` et donc
+pas la numérotation romaine des pages liminaires. Préambule séparé, un fichier par chapitre,
+`Makefile` avec une cible `verif` qui contrôle débordements et références.
+
+**Contenu.** 79 pages : page de garde, remerciements, résumé, notations, huit chapitres,
+trois annexes, bibliographie. Deux schémas TikZ (flux du procédé, architecture logicielle).
+
+**Trois difficultés de compilation, et leur cause :**
+1. `\frontmatter` indéfini --- la classe `report` ne le fournit pas ;
+2. `File ended while scanning use of \@@BOOKMARK` --- des macros `\SI{}` placées dans des
+   titres de section cassent les signets PDF générés par hyperref. Remplacées par du texte ;
+3. deux schémas TikZ débordant de la largeur du texte --- enveloppés dans un `\resizebox`.
+
+**Résultat : 0 débordement de ligne, 0 référence indéfinie.**
+
+### Choix de rédaction
+
+Le rapport ne se contente pas de décrire ce qui a été fait : il **argumente**. Trois
+sections en portent la charge :
+- la démonstration de dégénérescence de l'objectif spécifié, posée comme une proposition
+  avec sa preuve ;
+- le chapitre entier consacré à l'analyse critique des spécifications, avec la hiérarchie
+  des sources fixée a priori ;
+- la conclusion, qui distingue explicitement un modèle *correct* d'un modèle *utile*.
+
+Deux éléments restent à la charge de l'étudiant, parce qu'ils ne peuvent pas être devinés :
+la page de garde (noms, dates) et les remerciements, dont seule une trame est fournie.
+
+### État du projet
+Les sept phases sont terminées. La suite dépend des réponses de l'encadrant et de la
+confrontation des résultats au réalisé de l'usine.

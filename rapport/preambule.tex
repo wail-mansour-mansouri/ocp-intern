@@ -1,0 +1,173 @@
+% ============================================================================
+%  Préambule — mise en forme, paquets, macros
+% ============================================================================
+
+% ---- Langue et encodage -----------------------------------------------------
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[french]{babel}
+\usepackage{microtype}
+
+% ---- Mise en page -----------------------------------------------------------
+\usepackage[a4paper,top=2.8cm,bottom=2.8cm,left=2.7cm,right=2.7cm]{geometry}
+\usepackage{setspace}
+\onehalfspacing
+\usepackage{emptypage}
+
+% ---- Mathématiques ----------------------------------------------------------
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{mathtools}
+\usepackage{bm}
+\usepackage[version=4]{mhchem}   % formules chimiques : \ce{H3PO4}
+
+% ---- Tableaux et figures ----------------------------------------------------
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{longtable}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{caption}
+\captionsetup{font=small,labelfont=bf}
+
+% ---- Nombres ----------------------------------------------------------------
+\usepackage{siunitx}
+\sisetup{
+  output-decimal-marker = {,},
+  group-separator = {\,},
+  group-minimum-digits = 4,
+  detect-weight = true,
+}
+
+% ---- Couleurs et encadrés ---------------------------------------------------
+\usepackage{xcolor}
+\definecolor{ocpvert}{RGB}{0,124,84}
+\definecolor{ocpbleu}{RGB}{31,78,121}
+\definecolor{grisclair}{RGB}{244,246,248}
+\definecolor{grisfonce}{RGB}{90,95,100}
+\definecolor{rougealerte}{RGB}{176,42,42}
+
+\usepackage[most]{tcolorbox}
+
+% ---- Schémas ----------------------------------------------------------------
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric,arrows.meta,positioning,calc,fit,backgrounds}
+
+% ---- Code -------------------------------------------------------------------
+\usepackage{listings}
+\lstset{
+  basicstyle=\ttfamily\footnotesize,
+  keywordstyle=\color{ocpbleu}\bfseries,
+  commentstyle=\color{grisfonce}\itshape,
+  stringstyle=\color{ocpvert},
+  numbers=left,
+  numberstyle=\tiny\color{grisfonce},
+  numbersep=8pt,
+  frame=leftline,
+  framesep=6pt,
+  rulecolor=\color{ocpbleu},
+  breaklines=true,
+  showstringspaces=false,
+  columns=fullflexible,
+  extendedchars=true,
+  literate=%
+    {é}{{\'e}}1 {è}{{\`e}}1 {ê}{{\^e}}1 {à}{{\`a}}1 {ç}{{\c c}}1
+    {É}{{\'E}}1 {î}{{\^i}}1 {ô}{{\^o}}1 {û}{{\^u}}1 {ù}{{\`u}}1,
+}
+
+% ---- Titres -----------------------------------------------------------------
+\usepackage{titlesec}
+\titleformat{\chapter}[display]
+  {\normalfont\huge\bfseries\color{ocpbleu}}
+  {\normalsize\normalfont\color{grisfonce}\MakeUppercase{\chaptertitlename}\ \thechapter}
+  {14pt}{\Huge}
+\titlespacing*{\chapter}{0pt}{-20pt}{30pt}
+\titleformat{\section}{\normalfont\Large\bfseries\color{ocpbleu}}{\thesection}{1em}{}
+\titleformat{\subsection}{\normalfont\large\bfseries\color{grisfonce}}{\thesubsection}{1em}{}
+
+% ---- En-têtes et pieds ------------------------------------------------------
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\color{grisfonce}\nouppercase{\leftmark}}
+\fancyhead[R]{\small\color{grisfonce}\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\fancypagestyle{plain}{\fancyhf{}\fancyhead[R]{\small\color{grisfonce}\thepage}
+  \renewcommand{\headrulewidth}{0pt}}
+
+% ---- Liens ------------------------------------------------------------------
+\usepackage[hidelinks,breaklinks]{hyperref}
+\hypersetup{
+  colorlinks = true,
+  linkcolor  = ocpbleu,
+  citecolor  = ocpvert,
+  urlcolor   = ocpbleu,
+  pdftitle   = {Optimisation de la production et de la distribution d'acide phosphorique},
+  pdfsubject = {Rapport de stage d'ingénieur},
+}
+\usepackage[french]{cleveref}
+
+% ============================================================================
+%  Environnements personnalisés
+% ============================================================================
+
+\newtcolorbox{encadre}[1][]{
+  enhanced, breakable,
+  colback=grisclair, colframe=ocpbleu,
+  boxrule=0pt, leftrule=3pt,
+  arc=0pt, outer arc=0pt,
+  left=10pt, right=10pt, top=8pt, bottom=8pt,
+  fonttitle=\bfseries, #1
+}
+
+\newtcolorbox{resultat}[1][]{
+  enhanced, breakable,
+  colback=ocpvert!5, colframe=ocpvert,
+  boxrule=0pt, leftrule=3pt,
+  arc=0pt, outer arc=0pt,
+  left=10pt, right=10pt, top=8pt, bottom=8pt,
+  fonttitle=\bfseries\color{ocpvert}, #1
+}
+
+\newtcolorbox{alerte}[1][]{
+  enhanced, breakable,
+  colback=rougealerte!5, colframe=rougealerte,
+  boxrule=0pt, leftrule=3pt,
+  arc=0pt, outer arc=0pt,
+  left=10pt, right=10pt, top=8pt, bottom=8pt,
+  fonttitle=\bfseries\color{rougealerte}, #1
+}
+
+\theoremstyle{definition}
+\newtheorem{definitionn}{Définition}[chapter]
+\theoremstyle{plain}
+\newtheorem{proposition}{Proposition}[chapter]
+
+% ============================================================================
+%  Macros de notation du modèle
+% ============================================================================
+
+\newcommand{\Lvingtneuf}{\ensuremath{\mathcal{L}_{29}}}
+\newcommand{\Lcinqquatre}{\ensuremath{\mathcal{L}_{54}}}
+\newcommand{\Lvingtneufetoile}{\ensuremath{\mathcal{L}^{\ast}_{29}}}
+\newcommand{\Ech}{\ensuremath{\mathcal{E}}}
+\newcommand{\Conso}{\ensuremath{\mathcal{K}}}
+\newcommand{\Acides}{\ensuremath{\mathcal{A}}}
+\newcommand{\Prod}{\ensuremath{\mathcal{P}}}
+
+\newcommand{\xstd}{\ensuremath{x^{\mathrm{std}}}}
+\newcommand{\xdec}{\ensuremath{x^{\mathrm{dec}}}}
+\newcommand{\uncl}{\ensuremath{u^{\mathrm{ncl}}}}
+\newcommand{\udec}{\ensuremath{u^{\mathrm{dec}}}}
+\newcommand{\etacl}{\ensuremath{\eta^{\mathrm{cl}}}}
+\newcommand{\etacoc}{\ensuremath{\eta^{\mathrm{coc}}}}
+\newcommand{\etaconc}{\ensuremath{\eta^{\mathrm{conc}}}}
+\newcommand{\Picoc}{\ensuremath{\Pi^{\mathrm{coc}}}}
+\newcommand{\Pincl}{\ensuremath{\Pi^{\mathrm{ncl}}}}
+
+\newcommand{\PdeuxOcinq}{\ensuremath{\mathrm{P_2O_5}}}
+\newcommand{\tP}{\,t~\PdeuxOcinq}
+
+% Renvoi vers une contrainte du modèle (nom court : \Cref appartient à cleveref)
+\newcommand{\Ctr}[1]{\textbf{(C#1)}}

@@ -15,8 +15,7 @@ Phase 3  Socle logiciel                                ✅ TERMINÉ
 Phase 4  Modèle d'optimisation                         ✅ TERMINÉ
 Phase 5  Validation et analyse                         ✅ TERMINÉ
 Phase 6  Rapport Excel                                 ✅ TERMINÉ
-─────────────────────────────────────────────────────────────────
-Phase 7  Rapport de stage LaTeX                        ⬜ SUIVANTE
+Phase 7  Rapport de stage LaTeX                        ✅ TERMINÉ
 ```
 
 ---
@@ -198,7 +197,7 @@ sources de chaque livraison.
 
 ---
 
-## Phase 7 — Rapport de stage LaTeX ⬜ *(prochaine étape)*
+## Phase 7 — Rapport de stage LaTeX ✅
 
 ### Objectif
 Un document académique et professionnel, compilé en PDF.
@@ -236,9 +235,9 @@ Trois éléments distingueront ce rapport d'un rapport de stage ordinaire :
 - Page de garde aux couleurs INSEA / OCP
 
 ### Livrables
-- [ ] Sources LaTeX dans `rapport/`
-- [ ] PDF compilé
-- [ ] Figures vectorielles
+- [x] Sources LaTeX dans `rapport/`
+- [x] PDF compilé
+- [x] Figures vectorielles
 
 ---
 
@@ -273,7 +272,7 @@ Trois éléments distingueront ce rapport d'un rapport de stage ordinaire :
 |---|---|---|
 | Phases 0-2 — Compréhension et formalisation | — | **itération 1** |
 | Phases 3-6 — Socle, modèle, validation, Excel | 4 à 6 itérations | **itération 2** |
-| Phase 7 — Rapport LaTeX | 2 à 3 itérations | à faire |
+| Phase 7 — Rapport LaTeX | 2 à 3 itérations | **itération 3** |
 
 Les phases 3 à 6 ont été menées en une seule itération plutôt que quatre à six. La raison
 est directement attribuable au travail de l'itération 1 : le modèle mathématique étant
@@ -281,4 +280,8 @@ entièrement posé, contrainte par contrainte et justification par justification
 du code s'est réduite à une **traduction**. C'est l'argument le plus concret en faveur de
 la méthode — formaliser d'abord, coder ensuite.
 
-**Reste : la Phase 7 seule**, soit 2 à 3 itérations.
+**Les sept phases sont terminées**, en trois itérations au lieu des six à neuf estimées.
+
+Ce qui reste ne relève plus du plan initial : compléter la page de garde et les
+remerciements du rapport, obtenir les réponses de l'encadrant aux questions Q11 à Q13, et
+confronter les résultats au réalisé de l'usine.
