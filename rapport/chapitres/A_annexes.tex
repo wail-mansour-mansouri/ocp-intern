@@ -1,0 +1,283 @@
+\chapter{Formulation complète du modèle}
+\label{ann:contraintes}
+
+Cette annexe rassemble l'intégralité des contraintes, pour référence. Les six les plus
+significatives sont commentées au chapitre~\ref{chap:modelisation}.
+
+\section{Récapitulatif}
+
+\begin{table}[H]
+\centering
+\caption{Les dix-sept familles de contraintes}
+\label{tab:recap-contraintes}
+\begin{tabular}{@{}llcl@{}}
+\toprule
+\textbf{N\textsuperscript{o}} & \textbf{Intitulé} & \textbf{Type} & \textbf{Organe} \\
+\midrule
+C1 & Partage de la production 29 & égalité & filtration \\
+C2 & Choix du niveau de décadmiation & égalité & filtres \\
+C3 & Faisabilité de la décadmiation & $\le$ & filtres \\
+C4 & Charge de concentration & égalité souple & échelons \\
+C4b & Alimentation des échelons CoC & $\ge$ & échelons \\
+C5 & Limite de l'acide dec en concentration & $\le$ & échelons \\
+C6 & NCL disponible & égalité & échelons \\
+C7 & Bilan de l'acide 29 standard & égalité & cuves 29 \\
+C8 & Bilan de l'acide 29 décadmié & égalité & cuves 29 \\
+C9 & Bande de sécurité des cuves 29 & molle & cuves 29 \\
+C10 & Bilan de l'acide 54 NCL & égalité & cuves 54 \\
+C11 & Capacité des décanteurs & $\le$ & décanteurs \\
+C12 & Bilan d'IR12 & égalité & bac IR12 \\
+C13 & Bilan d'IR11 & égalité & bac IR11 \\
+C14 & Satisfaction de la demande & égalité & expédition \\
+C15 & Qualité d'IR11 & $\ge$ & bac IR11 \\
+C16 & Transferts semi-continus & $\le$ / $\ge$ & conduites \\
+C17 & Bande de sécurité des cuves 54 & molle & cuves 54 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Contraintes non développées dans le corps du rapport}
+
+\paragraph{C1 --- Partage de la production d'acide 29.}
+\begin{equation}
+P^{\mathrm{std}}_\ell = P_\ell - d_\ell \qquad \forall \ell \in \Lvingtneuf
+\end{equation}
+Ce qui n'est pas décadmié reste standard. La décadmiation répartit la production, elle ne
+la crée pas.
+
+\paragraph{C2 --- Choix unique du niveau.}
+\begin{equation}
+\sum_{v \in \mathcal{D}} w_{\ell,v} = 1 \qquad \forall \ell \in \mathcal{L}^{\mathrm{dec}}_{29}
+\end{equation}
+Encodage \emph{one-hot} : la somme égale à~1 garantit qu'un niveau et un seul est retenu.
+
+\paragraph{C3 --- Faisabilité de la décadmiation.}
+\begin{equation}
+d_\ell \le P_\ell \qquad \forall \ell \in \mathcal{L}^{\mathrm{dec}}_{29}
+\end{equation}
+Contrainte \emph{absente du cahier des charges}. Sans elle, la ligne 13ZU --- qui produit
+\SI{800}{\tonne} --- pourrait « décadmier » \SI{1500}{\tonne} et créer de la matière.
+
+\paragraph{C5 --- Limite de l'acide décadmié en concentration.}
+\begin{equation}
+\xdec_\ell \le \Pincl_{\sigma(\ell)}, \qquad
+\xdec_\ell = 0 \ \text{ si } \sigma(\ell) \notin \mathcal{L}^{\mathrm{deccl}}_{54}
+\end{equation}
+L'acide décadmié n'emprunte que les échelons non cocristallisants : un acide cocristallisé
+ne pouvant être clarifié, l'y envoyer produirait un acide impossible à traiter ensuite.
+
+\paragraph{C8 --- Bilan de l'acide 29 décadmié.}
+\begin{equation}
+S^{\mathrm{dec}}_\ell = S^{0,\mathrm{dec}}_\ell + d_\ell - \xdec_\ell
+- \sum_{k} y^{\text{29dec}}_{\ell,k}
+\end{equation}
+Bien plus simple que le bilan standard : l'acide décadmié ne se transfère pas entre lignes
+et ne reçoit aucune boue, les boues étant de qualité standard.
+
+\paragraph{C9 --- Bande de sécurité des cuves d'acide 29.}
+\begin{align}
+S^{\mathrm{std}}_\ell + S^{\mathrm{dec}}_\ell &\le Z^{\max}_{29} + \nu^{+}_{\ell} \\
+S^{\mathrm{std}}_\ell + S^{\mathrm{dec}}_\ell &\ge Z^{\min}_{29} - \nu^{-}_{\ell}
+\end{align}
+La borne porte sur la \textbf{somme} des deux qualités, qui partagent physiquement les mêmes
+cuves. Les borner séparément autoriserait le double du volume réel --- erreur classique.
+
+\paragraph{C10 --- Bilan de l'acide 54 NCL.}
+\begin{equation}
+S^{\mathrm{ncl}}_m = S^{0,\mathrm{ncl}}_m + N_m - \uncl_m - \sum_{k} y^{\text{54ncl}}_{m,k}
+\end{equation}
+Aucune boue n'y revient : elles remontent au niveau~29. Le NCL décadmié n'y transite jamais.
+
+\paragraph{Variante D-11 --- cocristallisation décidable.}
+Quand le mode optionnel est activé, chaque échelon raccordé à une unité de cocristallisation
+reçoit une binaire $z_e$ et l'on substitue partout
+\begin{equation}
+\Picoc_m = \sum_{e \in \Ech^{\mathrm{coc}}_m} \kappa_e\, z_e
+\end{equation}
+La contrainte C5 devient alors $\xdec_\ell \le \Pi_m - \Picoc_m$ : éteindre un échelon
+cocristallisant libère de la capacité pour l'acide décadmié. Toutes les autres contraintes
+restent inchangées dans leur écriture, et toutes restent affines.
+
+\paragraph{C12 et C13 --- Bilans des bacs centraux.}
+\begin{align}
+S^{12} &= S^{0,12} + \etacl \sum_{m} \uncl_m - \sum_{k} y^{\mathrm{cl}}_{k} \\
+S^{11,\mathrm{coc}} &= S^{0,11} + \sum_{m} G_m - \sum_{k} y^{\mathrm{coc}}_{k} \\
+S^{11,\mathrm{deccl}} &= \etacl \sum_{m} \xdec_{\sigma^{-1}(m)} - \sum_{k} y^{\mathrm{deccl}}_{k}
+\end{align}
+Les deux produits d'IR11 sont suivis séparément --- ils n'ont pas la même origine --- mais
+une \emph{seule} contrainte de capacité porte sur leur somme : c'est un bac unique.
+
+\chapter{Données du scénario de référence}
+\label{ann:donnees}
+
+\section{Stocks initiaux}
+
+\begin{table}[H]
+\centering
+\caption{Stocks initiaux d'acide 29, convertis depuis les hauteurs de cuve}
+\label{tab:stocks-29}
+\begin{tabular}{@{}lS[table-format=2.2]S[table-format=4.1]S[table-format=1.2]S[table-format=3.1]@{}}
+\toprule
+\textbf{Ligne} & {\textbf{h std} (\si{\meter})} & {\textbf{Stock std}} & {\textbf{h dec} (\si{\meter})} & {\textbf{Stock dec}} \\
+\midrule
+13AB & 13.75 & 790.0 & 0.00 & 0.0 \\
+13CD & 6.75 & 387.8 & 6.00 & 344.7 \\
+13XY & 5.05 & 290.2 & 7.95 & 456.8 \\
+13ZU & 14.20 & 815.9 & 0.00 & 0.0 \\
+13E & 7.70 & 442.4 & 0.00 & 0.0 \\
+13F & 14.40 & 827.4 & 0.00 & 0.0 \\
+\midrule
+\textbf{Total} & & \bfseries 3553.7 & & \bfseries 801.5 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Stocks initiaux d'acide 54 et des bacs centraux}
+\label{tab:stocks-54}
+\begin{tabular}{@{}lS[table-format=2.2]S[table-format=4.1]S[table-format=4.1]@{}}
+\toprule
+\textbf{Emplacement} & {\textbf{Hauteur} (\si{\meter})} & {\textbf{Stock} (\tP)} & {\textbf{Capacité}} \\
+\midrule
+14AB & 11.43 & 901.3 & 1482.4 \\
+14CD & 4.68 & 369.0 & 1482.4 \\
+14XY & 3.78 & 298.1 & 1482.4 \\
+14ZU & 11.65 & 918.6 & 1482.4 \\
+14EXT & 2.80 & 220.8 & 1482.4 \\
+\midrule
+IR11 & 9.38 & 5514.7 & 6372.4 \\
+IR12 & 9.14 & 3821.6 & 4806.7 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Demande consolidée}
+
+\begin{table}[H]
+\centering
+\caption{Besoins en acide par type (\tP)}
+\label{tab:demande-consolidee}
+\begin{tabular}{@{}lS[table-format=4.2]S[table-format=4.2]S[table-format=4.2]@{}}
+\toprule
+\textbf{Type d'acide} & {\textbf{Engrais}} & {\textbf{Direct}} & {\textbf{Total}} \\
+\midrule
+acide 29 standard & 388.24 & 700.00 & 1088.24 \\
+acide 29 décadmié & 454.66 & 0.00 & 454.66 \\
+acide 54 NCL & 1082.18 & 700.00 & 1782.18 \\
+acide 54 clarifié & 0.00 & 1500.00 & 1500.00 \\
+acide 54 dec total & 986.71 & 0.00 & 986.71 \\
+\midrule
+\textbf{Total} & & & \bfseries 5811.79 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Production d'acide 54 recalculée}
+
+\begin{table}[H]
+\centering
+\caption{Production d'acide 54 et ventilation cocristallisation / NCL (\tP/j)}
+\label{tab:prod54-detail}
+\begin{tabular}{@{}lS[table-format=4.1]S[table-format=4.1]S[table-format=4.1]@{}}
+\toprule
+\textbf{Ligne} & {\textbf{Total}} & {\textbf{Cocristallisé}} & {\textbf{NCL libre}} \\
+\midrule
+14EXT & 1505.0 & 1505.0 & 0.0 \\
+14AB & 2134.2 & 1534.2 & 600.0 \\
+14CD & 1040.0 & 0.0 & 1040.0 \\
+14XY & 820.8 & 0.0 & 820.8 \\
+14ZU & 1481.7 & 0.0 & 1481.7 \\
+\midrule
+\textbf{Total} & \bfseries 6981.7 & \bfseries 3039.2 & \bfseries 3942.5 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Il en résulte une production de CoC de $0{,}80 \times \num{3039,2} = \num{2431,3}\tP$ par
+jour, pour un besoin en acide de qualité décadmiée de \SI{986,71}{\tonne} --- soit un facteur
+$2{,}5$ qui est à l'origine des deux violations structurelles analysées au
+chapitre~\ref{chap:resultats}.
+
+\section{Analyse de capacité préalable}
+
+Cette analyse a été menée \emph{avant} toute optimisation, à partir des seules données
+d'entrée. Elle avait déjà identifié le goulot d'étranglement.
+
+\begin{table}[H]
+\centering
+\caption{Comparaison ressources / besoins}
+\label{tab:capacite}
+\begin{tabular}{@{}lS[table-format=5.1]S[table-format=5.1]l@{}}
+\toprule
+\textbf{Ressource} & {\textbf{Disponible}} & {\textbf{Requis}} & \textbf{Marge} \\
+\midrule
+Acide 29 (production + stock) & 12655.2 & 8524.7 & confortable \\
+Acide 54 (production) & 6981.7 & 4269.0 & confortable \\
+Clarification (4 lignes) & 4000.0 & 1667.0 & confortable \\
+\textbf{Espace libre dans IR11} & \bfseries 857.7 & \bfseries 1444.7 & \bfseries saturation \\
+Espace libre dans IR12 & 985.1 & 0.0 & confortable \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{encadre}
+Le solde net journalier d'IR11 --- entrées \SI{2431,3}{\tonne} moins sorties
+\SI{986,7}{\tonne} --- dépasse de \SI{587}{\tonne} l'espace disponible, \emph{avant même}
+toute décision d'optimisation.
+
+Cette analyse préalable a orienté deux choix de modélisation : traiter les bornes hautes de
+stock en contraintes molles, et concentrer l'analyse de sensibilité sur la configuration de
+la cocristallisation.
+\end{encadre}
+
+\chapter{Organisation du dépôt logiciel}
+\label{ann:depot}
+
+\begin{table}[H]
+\centering
+\caption{Contenu du dépôt}
+\label{tab:depot}
+\begin{tabular}{@{}lp{8.5cm}@{}}
+\toprule
+\textbf{Emplacement} & \textbf{Contenu} \\
+\midrule
+\texttt{docs-helper/} & dix documents pédagogiques couvrant l'intégralité du projet \\
+\texttt{PILOTAGE/} & état d'avancement, tâches, journal, registre des décisions, questions \\
+\texttt{src/ocp\_optim/} & treize modules Python \\
+\texttt{tests/} & 162 tests automatisés \\
+\texttt{data/} & profils qualité reconstruits, scénario de référence \\
+\texttt{rapport/} & sources \LaTeX{} du présent document \\
+\texttt{documentation-ocp/} & documents originaux fournis par l'encadrant \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Registre des décisions}
+
+Chaque décision de modélisation est consignée selon un gabarit uniforme --- contexte,
+options envisagées, décision, justification, conséquences, réversibilité --- afin qu'elle
+puisse être réexaminée sans avoir à reconstituer le raisonnement.
+
+\begin{table}[H]
+\centering
+\caption{Les onze décisions de modélisation}
+\label{tab:decisions}
+\begin{tabular}{@{}lp{9.5cm}@{}}
+\toprule
+\textbf{N\textsuperscript{o}} & \textbf{Décision} \\
+\midrule
+D-01 & L'unité de compte est la tonne de \PdeuxOcinq{} \\
+D-02 & Modèle mono-période \\
+D-03 & Formulation en nombres entiers mixtes \\
+D-04 & Objectif lexicographique à trois niveaux \\
+D-05 & Les boues de cocristallisation retournent au stock d'acide 29 \\
+D-06 & La limite décanteur porte sur l'entrée \\
+D-07 & Les bornes de stock sont recalculées depuis la géométrie \\
+D-08 & Les hauteurs fournies sont cumulées sur deux cuves \\
+D-09 & Production obligatoire de DEC\_CL par contrainte de mélange \\
+D-10 & Charge de concentration : bande de tolérance pénalisée \\
+D-11 & Mode optionnel : cocristallisation décidable \\
+\bottomrule
+\end{tabular}
+\end{table}

@@ -1,0 +1,48 @@
+\chapter*{Résumé}
+\addcontentsline{toc}{chapter}{Résumé}
+\markboth{Résumé}{Résumé}
+
+La plateforme chimique de Jorf Lasfar produit de l'acide phosphorique sur six lignes
+d'attaque-filtration, le concentre sur cinq lignes, puis le purifie par trois procédés
+avant de le distribuer à neuf consommateurs. Chaque jour, un ingénieur d'exploitation doit
+décider quelles quantités décadmier, quelles quantités clarifier, quels transferts effectuer
+entre ateliers et quelle ligne sert quel client. Ces décisions sont couplées, contraintes
+par un réseau de tuyauterie incomplet, et prises aujourd'hui au jugement.
+
+Ce travail formalise ce problème en un \textbf{programme linéaire mixte en nombres entiers}
+mono-période et en fournit une implémentation logicielle complète, testée et validée.
+
+Trois apports méthodologiques structurent le rapport. Premièrement, l'identification de
+l'unité de compte réelle du système --- la \textbf{tonne de \PdeuxOcinq{}} et non la tonne
+d'acide marchand --- information absente de toute la documentation fournie, établie ici par
+trois preuves indépendantes, et sans laquelle l'intégralité des bilans matière serait
+erronée. Deuxièmement, la démonstration que la fonction objectif spécifiée dans le cahier
+des charges est \textbf{mathématiquement dégénérée} : maximiser le total livré sous
+contrainte de satisfaction exacte de la demande produit un objectif constant sur tout le
+domaine réalisable. Un objectif \textbf{lexicographique à trois niveaux} est proposé, dont
+le premier niveau est strictement équivalent à l'objectif demandé et le généralise au cas
+infaisable. Troisièmement, un audit systématique des spécifications a mis en évidence
+\textbf{onze anomalies}, dont quatre erreurs arithmétiques atteignant \SI{59}{\percent}
+d'écart ; chacune est prouvée et arbitrée selon une hiérarchie de sources établie a priori.
+
+Sur le scénario de référence, le modèle atteint le statut optimal en moins de \SI{0.1}{\second} et
+satisfait \SI{100}{\percent} de la demande. Un validateur écrit indépendamment du modèle,
+à partir des seules équations physiques, confirme la solution par 86 contrôles.
+
+Le résultat le plus utile pour l'exploitation n'est cependant pas le plan lui-même, mais le
+diagnostic qui l'accompagne : le modèle révèle deux violations structurelles --- le bac
+central IR11 déborde de \SI{1016}{\tonne} par jour et le stock d'une ligne reste sous son
+seuil de sécurité --- qu'\emph{aucune} décision d'exploitation ne peut corriger. Une analyse
+de sensibilité en établit la cause unique et le remède chiffré : réduire le nombre
+d'échelons affectés à la cocristallisation résorbe intégralement les deux violations, sans
+investissement et sans dégrader le service rendu. Un mode optionnel, dans lequel cette
+affectation devient une variable de décision, confirme ce diagnostic --- sous la réserve,
+explicitement portée, qu'un modèle mono-période n'a aucune raison de reconstituer un stock
+central.
+
+\vspace{0.8cm}
+\noindent\textbf{Mots-clés} : recherche opérationnelle, programmation linéaire en nombres
+entiers, optimisation lexicographique, bilan matière, acide phosphorique, planification de
+production, OCP.
+
+\cleardoublepage

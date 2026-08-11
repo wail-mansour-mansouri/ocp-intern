@@ -1,0 +1,235 @@
+\chapter{Implémentation logicielle}
+\label{chap:implementation}
+
+\section{Choix techniques}
+
+\begin{table}[H]
+\centering
+\caption{Choix techniques et justifications}
+\label{tab:choix-techniques}
+\begin{tabular}{@{}llp{7cm}@{}}
+\toprule
+\textbf{Besoin} & \textbf{Retenu} & \textbf{Justification} \\
+\midrule
+Langage & Python 3.11 & écosystème scientifique, lisibilité, compétence disponible \\
+Modélisation & PuLP & syntaxe proche de la notation mathématique \\
+Solveur & CBC & libre, sans licence : condition de pérennité chez OCP \\
+Tests & pytest & standard, paramétrage et fixtures simples \\
+Restitution & openpyxl & format imposé par le service \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Le problème comptant \num{29} variables binaires et \num{138} contraintes, la puissance d'un
+solveur commercial est inutile. PuLP permettrait au demeurant de basculer sur Gurobi ou
+CPLEX en changeant une seule ligne, si la taille du problème venait à croître.
+
+\section{Architecture}
+
+\begin{figure}[H]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[
+  node distance=0.75cm,
+  mod/.style={rectangle, draw=ocpbleu, thick, fill=white, rounded corners=2pt,
+              text width=4.6cm, align=center, minimum height=0.85cm, font=\small},
+  ann/.style={font=\scriptsize\itshape, text=grisfonce, align=left, text width=5.4cm},
+  f/.style={-{Stealth[length=2.5mm]}, thick, draw=ocpbleu},
+]
+\node[mod] (sc) {\texttt{scenario.py}};
+\node[ann, right=0.5cm of sc] (asc) {validation stricte : un scénario incohérent échoue tout de suite};
+\node[mod, below=of sc] (pre) {\texttt{preprocessing.py}};
+\node[ann, right=0.5cm of pre] (apre) {prétraitement déterministe : $\Pi_m$, $G_m$, $R_{k,a}$};
+\node[mod, below=of pre] (mod) {\texttt{model/}};
+\node[ann, right=0.5cm of mod] (amod) {MILP : 170 variables, 138 contraintes};
+\node[mod, below=of mod] (sol) {\texttt{solver.py}};
+\node[ann, right=0.5cm of sol] (asol) {trois passes lexicographiques (CBC)};
+\node[mod, below=of sol] (res) {\texttt{results.py}};
+\node[ann, right=0.5cm of res] (ares) {vue métier de la solution};
+\node[mod, below=1.3cm of res] (val) {\texttt{validation.py}};
+\node[mod, left=0.7cm of val] (ana) {\texttt{analysis.py}};
+\node[mod, right=0.7cm of val] (rep) {\texttt{reporting/}};
+
+\draw[f] (sc) -- (pre);
+\draw[f] (pre) -- (mod);
+\draw[f] (mod) -- (sol);
+\draw[f] (sol) -- (res);
+\draw[f] (res) -- (val);
+\draw[f] (res.south west) to[out=-120,in=90] (ana.north);
+\draw[f] (res.south east) to[out=-60,in=90] (rep.north);
+\end{tikzpicture}%
+}
+\caption{Chaîne de traitement du logiciel}
+\label{fig:architecture}
+\end{figure}
+
+Le paquet compte treize modules répartis comme suit : \texttt{constants}, \texttt{units},
+\texttt{profiles}, \texttt{scenario} et \texttt{preprocessing} pour le socle ; le
+sous-paquet \texttt{model/} (variables, contraintes, objectif) ; \texttt{solver},
+\texttt{results}, \texttt{validation}, \texttt{analysis} et \texttt{cli} ; le sous-paquet
+\texttt{reporting/} pour les sorties Excel et JSON.
+
+\section{Trois décisions d'architecture}
+
+\subsection{Le prétraitement est séparé de l'optimisation}
+
+Une grande partie du système n'est pas optimisable. Ces grandeurs sont calculées une fois
+pour toutes \emph{avant} de construire le modèle.
+
+\begin{encadre}[title={Pourquoi c'est important}]
+En faire des variables de décision donnerait un modèle plus gros, plus lent, et surtout
+\textbf{faux} : il produirait des plans que l'usine ne peut pas exécuter. C'est l'erreur la
+plus facile à commettre sur ce sujet.
+\end{encadre}
+
+\subsection{Une fonction par famille de contraintes, nommée d'après sa référence}
+
+Les fonctions s'appellent \texttt{c07\_bilan\_acide\_29\_std},
+\texttt{c11\_capacite\_decanteurs}, et ainsi de suite. La correspondance entre le
+chapitre~\ref{chap:modelisation} et le code se vérifie ligne à ligne : une contrainte
+modifiée dans le modèle se retrouve immédiatement dans le code, et réciproquement.
+
+\subsection{Le validateur ne relit jamais le modèle}
+
+Le module \texttt{validation.py} recalcule les bilans \textbf{à partir des équations
+physiques}, et non des contraintes posées dans \texttt{model/}.
+
+\begin{encadre}[title={Le principe de double vérification}]
+Si la formulation contient une erreur, le solveur renverra une solution parfaitement
+« optimale » --- pour un mauvais problème. Rejouer les contraintes du modèle ne détecterait
+rien. Seul un contrôle écrit séparément peut mettre l'erreur en évidence.
+\end{encadre}
+
+\begin{resultat}[title={Ce principe a payé dès le premier passage}]
+Le validateur a immédiatement signalé un écart de \SI{25,7}{\tonne} sur le bilan d'IR11.
+L'origine : dans l'extraction des résultats, les livraisons de CoC et de DEC\_CL vers un
+\emph{même} consommateur s'écrasaient mutuellement au lieu de se cumuler --- une
+compréhension de dictionnaire écrivant deux fois la même clé.
+
+Le modèle, lui, était correct. C'est la couche de restitution qui était fautive. Un contrôle
+qui aurait relu les contraintes du modèle n'aurait rien vu.
+\end{resultat}
+
+\section{Points délicats de l'implémentation}
+
+\subsection{Le piège de portée en Python}
+
+Dans une fonction imbriquée qui ajoute des contraintes, écrire \texttt{prob += ...}
+rebinderait \texttt{prob} en variable \emph{locale} de la fonction interne, provoquant une
+\texttt{UnboundLocalError}. D'où l'usage de \texttt{prob.addConstraint(...)}.
+
+\subsection{Les tolérances de la résolution lexicographique}
+
+Figer un niveau à l'exact (\texttt{f1 == f1*}) rend la passe suivante infaisable : le
+solveur ne retrouve pas au bit près la valeur qu'il vient d'annoncer. On fige donc avec une
+tolérance relative de \num{e-6}, négligeable devant des grandeurs en milliers de tonnes.
+
+Ces contraintes de figeage sont \textbf{retirées en sortie}, y compris en cas d'erreur. Sans
+ce nettoyage, la résolution laisserait le modèle dans un état différent de celui qu'elle a
+reçu : une seconde résolution du même objet accumulerait les contraintes, et le décompte
+publié dans ce rapport deviendrait faux. Le défaut a d'ailleurs été mis au jour par le
+fichier de tests décrit en section~\ref{sec:tests-valeurs}.
+
+\subsection{Un mode paramétrable plutôt qu'une bifurcation du code}
+
+Le mode « cocristallisation décidable » (décision~D-11) aurait pu donner lieu à deux
+variantes du modèle. On a préféré quatre fonctions d'aide --- \texttt{\_pi\_coc},
+\texttt{\_coc\_produit}, \texttt{\_boue\_coc}, \texttt{\_coc\_total} --- qui renvoient soit
+le paramètre, soit l'expression affine, selon que les binaires existent ou non :
+
+\begin{lstlisting}[language=Python, caption={Bascule entre paramètre et variable}, label={lst:pi-coc}]
+def _pi_coc(v, params, ligne54):
+    if not v.z:                       # mode subi : c'est un parametre
+        return params.production_54_coc[ligne54]
+    return pulp.lpSum(                # mode decidable : expression affine
+        params.production_echelon[e] * v.z[e]
+        for e in params.echelons_coc_candidats.get(ligne54, ())
+    )
+\end{lstlisting}
+
+Les fonctions de contraintes ignorent donc complètement le mode. C'est ce qui garantit
+qu'aucune des deux variantes ne peut diverger de l'autre par inadvertance.
+
+\subsection{Un écart de 0,06\,\% sur le coefficient de conversion}
+
+Le dossier publie $\mathrm{vol}_{29}(h) = 174{,}11 \cdot h \cdot 0{,}33$, alors que la
+physique déclarée donne $0{,}26 \times 1{,}270 = 0{,}3302$. Le code retient le coefficient
+publié --- c'est la formule réellement utilisée sur le site --- et un test vérifie en
+permanence qu'il reste cohérent avec la physique.
+
+\section{Stratégie de test}
+
+\num{162} tests s'exécutent en environ \SI{3}{\second}. Au-delà du décompte, quatre familles
+méritent d'être distinguées.
+
+\subsection{Les tests qui verrouillent une anomalie}
+
+Présentés au chapitre~\ref{chap:analyse-specs}. Un constat documenté mais non testé finit
+par être oublié.
+
+\subsection{Les tests de contre-épreuve}
+
+Ils démontrent qu'une contrainte \emph{sert à quelque chose} :
+
+\begin{lstlisting}[language=Python, caption={Contre-épreuve de la contrainte de qualité d'IR11}, label={lst:contre-epreuve}]
+def test_sans_contrainte_de_qualite_aucun_dec_cl(scenario, profils):
+    """Avec alpha = 0, l'optimiseur cesse completement de produire du DEC_CL."""
+    sans_alpha = dataclasses.replace(scenario, alpha_dec_cl=0.0)
+    params = calculer_parametres(sans_alpha, profils)
+    modele = construire_modele(sans_alpha, params)
+    resultat = extraire(modele, resoudre(modele))
+
+    dec_cl = sum(r.dec_cl_produit for r in resultat.lignes_54.values())
+    assert dec_cl == pytest.approx(0.0, abs=1e-4)
+\end{lstlisting}
+
+Ce test \emph{prouve} la nécessité de la contrainte \Ctr{15} : sans elle, la règle métier
+serait effectivement violée. L'argument théorique du
+chapitre~\ref{chap:modelisation} est ainsi confirmé expérimentalement.
+
+\subsection{Les tests qui corrompent la solution}
+
+Un validateur qui répondrait toujours « conforme » passerait tous les tests positifs sans
+rien garantir. On lui soumet donc des solutions délibérément fausses --- treize corruptions
+différentes : bilan faussé, demande non servie, capacité dépassée, niveau de décadmiation
+invalide, stock négatif, transfert sur une liaison inexistante --- et l'on vérifie qu'il les
+rejette toutes.
+
+\subsection{Les tests qui verrouillent les valeurs publiées}
+\label{sec:tests-valeurs}
+
+Ce projet cite des valeurs numériques dans une dizaine de documents et dans le présent
+rapport. Une modification du modèle rendrait silencieusement fausse une partie de cette
+documentation --- et une documentation fausse est pire qu'une documentation absente, car on
+lui fait confiance.
+
+Un fichier de tests dédié verrouille donc chaque chiffre publié : taille du modèle, stocks
+initiaux, bornes de cuve, production d'acide 54, demande consolidée, valeurs des trois
+niveaux, plan optimal, violations, tableaux de sensibilité. Chaque assertion porte en
+commentaire l'endroit où la valeur est publiée.
+
+\begin{encadre}
+Ce filet a immédiatement servi : il a révélé que la résolution laissait dans le modèle ses
+deux contraintes de figeage lexicographique, ce qui portait le décompte publié de 138 à 140
+et rendait l'objet non réutilisable. Le correctif est décrit plus haut.
+\end{encadre}
+
+\section{Sorties produites}
+
+Le programme produit une synthèse console, le classeur Excel à cinq feuilles imposé par le
+service, et un export JSON. Ce dernier n'est pas un doublon : il permet de rejouer, comparer
+et archiver les résultats sans passer par un tableur, ce qui est indispensable aux analyses
+de sensibilité et aux tests de non-régression.
+
+\begin{lstlisting}[language=bash, caption={Utilisation}, label={lst:usage}]
+pip install -e ".[dev]"
+
+python -m ocp_optim                        # resout et affiche la synthese
+python -m ocp_optim --sortie resultats/    # rapports Excel et JSON
+python -m ocp_optim --sensibilite          # analyses de sensibilite
+
+pytest                                     # 162 tests, environ 1,2 s
+\end{lstlisting}
+
+Le code de retour vaut \num{0} si la validation est conforme et \num{1} sinon : le programme
+est donc utilisable dans une chaîne automatisée.

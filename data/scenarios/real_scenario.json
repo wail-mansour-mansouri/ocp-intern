@@ -1,0 +1,72 @@
+{
+  "_meta": {
+    "nom": "Scenario reel de reference",
+    "source": "documentation-ocp/REAL_SCENARIO_REFERENCE.md",
+    "unite": "tonne de P2O5 par jour",
+    "remarque": "Les hauteurs de cuve locales sont CUMULEES sur les deux cuves de la ligne (decision D-08)."
+  },
+
+  "production_29": {
+    "13AB": 1500, "13CD": 1500, "13XY": 1500,
+    "13ZU": 800, "13E": 1500, "13F": 1500
+  },
+
+  "hauteurs_initiales": {
+    "stock_29_std": {
+      "13AB": 13.75, "13CD": 6.75, "13XY": 5.05,
+      "13ZU": 14.20, "13E": 7.70, "13F": 14.40
+    },
+    "stock_29_dec": {
+      "13AB": 0.0, "13CD": 6.00, "13XY": 7.95,
+      "13ZU": 0.0, "13E": 0.0, "13F": 0.0
+    },
+    "stock_54_ncl": {
+      "14AB": 11.43, "14CD": 4.68, "14XY": 3.78,
+      "14ZU": 11.65, "14EXT": 2.80
+    },
+    "ir11": 9.38,
+    "ir12": 9.14
+  },
+
+  "heures_marche": {
+    "E": 24, "F": 24, "G": 24, "H": 14,
+    "I": 24, "J": 14, "A": 24, "K": 24, "B": 24, "L": 24,
+    "C": 24, "M": 24, "D": 24, "N": 24,
+    "X": 14, "P": 14, "Y": 24, "Q": 24,
+    "Z": 14, "R": 14, "U": 24, "S": 24, "V": 24, "W": 0
+  },
+
+  "echelons_cocristallisation": {
+    "14EXT": ["E", "F", "G", "H"],
+    "14AB": ["I", "J", "A", "K"]
+  },
+
+  "capacites_lignes": {
+    "decadmiation_equipee": ["13AB", "13CD", "13XY", "13ZU", "13F"],
+    "dec29_vers_engrais": ["13CD", "13XY"],
+    "clarification_active": ["14AB", "14CD", "14XY", "14ZU"],
+    "dec_cl_active": ["14XY"]
+  },
+
+  "demande_directe": {
+    "IMACID": { "acid_29_std": 700 },
+    "EMAPHOS": { "acid_54_ncl": 700 },
+    "MAPS": { "acid_29_std": 0 },
+    "U53": { "acid_54_cl": 1500 },
+    "107DEF": { "acid_29_std": 0, "acid_54_cl": 0, "acid_54_coc": 0 },
+    "JFC1-5": { "acid_29_std": 0 }
+  },
+
+  "demande_engrais": {
+    "U16": { "DAP_STANDARD": 3057, "TSP_EURO": 1200 },
+    "U116A": { "MAP_11_52_EU": 3037 },
+    "U116BC": { "NPK_12_24_12_EU": 1540, "NPK_15_15_15_EU_20_MGKP2O5": 2126 }
+  },
+
+  "parametres_planification": {
+    "transfert_min": 100.0,
+    "transfert_max": 1000.0,
+    "alpha_dec_cl": 0.15,
+    "tolerance_concentration": 0.05
+  }
+}

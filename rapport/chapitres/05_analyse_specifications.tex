@@ -1,0 +1,309 @@
+\chapter{Analyse critique des spécifications}
+\label{chap:analyse-specs}
+
+\section{Pourquoi ce chapitre existe}
+
+Un ingénieur qui reçoit un cahier des charges le vérifie avant de coder. Cette vérification
+n'est pas une critique de ses auteurs : c'est une étape normale et nécessaire du travail.
+
+Les documents remis au début du stage totalisent environ \num{4200} lignes réparties en neuf
+fichiers. Toutes leurs valeurs numériques dérivées ont été \emph{recalculées} indépendamment,
+par un script écrit à cette seule fin. Cette démarche a mis en évidence
+\textbf{onze anomalies} : erreurs de calcul, contradictions internes, données manquantes.
+
+\begin{encadre}[title={Méthode adoptée face à une contradiction}]
+Une règle de priorité entre sources a été fixée \emph{a priori}, avant d'examiner les cas,
+pour éviter tout arbitrage de circonstance :
+
+\begin{enumerate}
+  \item le guide du procédé, qui se déclare lui-même référence définitive ;
+  \item la référence du scénario réel, qui décrit le cas à reproduire ;
+  \item le fichier de constantes ;
+  \item la spécification du format de sortie ;
+  \item les documents archivés, à valeur indicative.
+\end{enumerate}
+
+Et par-dessus tout : \textbf{la cohérence physique et dimensionnelle tranche}. Une source
+qui viole la conservation de la masse ou l'homogénéité des unités a tort, quel que soit son
+rang.
+\end{encadre}
+
+\section{Vue d'ensemble des anomalies}
+
+\begin{table}[H]
+\centering
+\caption{Les onze anomalies identifiées}
+\label{tab:anomalies}
+\begin{tabular}{@{}clcl@{}}
+\toprule
+\textbf{N\textsuperscript{o}} & \textbf{Anomalie} & \textbf{Gravité} & \textbf{Type} \\
+\midrule
+A-01 & Production d'acide 54 mal calculée & Critique & calcul \\
+A-02 & Bornes de stock d'acide 29 fausses & Critique & calcul \\
+A-03 & Stock initial d'IR12 incohérent & Important & calcul \\
+A-04 & Limite décanteur : entrée ou sortie ? & Important & contradiction \\
+A-05 & Destination des boues de cocristallisation & Important & contradiction \\
+A-06 & Hauteur minimale d'IR12 sous le volume mort & Mineur & incohérence \\
+A-07 & Capacité des cuves d'acide 29 : trois valeurs & Important & contradiction \\
+A-08 & Capacités d'échelon : t/h ou t/j ? & Mineur & unité \\
+A-09 & Deux listes de lignes décadmiantes & Mineur & contradiction \\
+A-10 & Fichier de profils qualité absent & Important & donnée manquante \\
+A-11 & Format de sortie : 5 ou 7 feuilles ? & Cosmétique & contradiction \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Deux données essentielles sont par ailleurs purement et simplement absentes : la borne
+maximale des transferts interzones, et le seuil quantifiant l'obligation de produire du
+DEC\_CL.
+
+\section{A-01 --- La production d'acide 54 est mal calculée}
+
+\subsection{Constat}
+
+La simulation détaillée fournie annonce une production totale de \SI{6636}{\tonne} par jour.
+Le recalcul donne \SI{6981,7}{\tonne}, soit un écart de \SI{5,2}{\percent} sur le flux
+principal du système.
+
+\subsection{Preuve}
+
+En appliquant la formule du document lui-même, $\Pi_m = \sum_e C_e h_e / 24$ :
+
+\begin{table}[H]
+\centering
+\caption{Recalcul de la production d'acide 54, ligne par ligne (\tP/j)}
+\label{tab:recalcul-p54}
+\begin{tabular}{@{}lS[table-format=4.1]S[table-format=4.0]S[table-format=3.1]@{}}
+\toprule
+\textbf{Ligne} & {\textbf{Recalculé}} & {\textbf{Document}} & {\textbf{Écart}} \\
+\midrule
+14EXT & 1505.0 & 1365 & 140.0 \\
+14AB  & 2134.2 & 2077 & 57.2 \\
+14CD  & 1040.0 & 1040 & 0.0 \\
+14XY  & 820.8  & 779  & 41.8 \\
+14ZU  & 1481.7 & 1375 & 106.7 \\
+\midrule
+\textbf{Total} & \bfseries 6981.7 & \bfseries 6636 & \bfseries 345.7 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Détaillons la ligne 14EXT :
+\[
+\frac{420 \times 24 + 420 \times 24 + 420 \times 24 + 420 \times 14}{24}
+= \frac{\num{36120}}{24} = \num{1505}
+\]
+Le document annonce \num{1365}. Il manque exactement $420 \times 8/24 = 140$.
+
+\begin{encadre}[title={Un indice révélateur}]
+La ligne 14CD est la \emph{seule} correcte --- et c'est aussi la seule dont tous les
+échelons marchent \SI{24}{\hour}. Toutes les erreurs concernent des lignes ayant au moins un
+échelon à horaire réduit. Le document a donc mal appliqué le prorata horaire.
+\end{encadre}
+
+\subsection{Arbitrage}
+
+Recalculer systématiquement, ne recopier aucun chiffre. Cette règle est appliquée dans tout
+le code : aucune valeur dérivée n'y est écrite en dur, et chaque formule est couverte par un
+test unitaire.
+
+\section{A-02 --- Les bornes de stock d'acide 29 sont surestimées de 59\,\%}
+
+\subsection{Constat}
+
+Le fichier de constantes annonce $Z^{\min}_{29} \approx \num{364,5}$ et
+$Z^{\max}_{29} \approx \num{1530,7}$. Le recalcul de \emph{sa propre formule} donne
+\num{229,8} et \num{965,3}.
+
+\subsection{Validation croisée --- la preuve décisive}
+
+La formule fournie est $Z^{\max} = 2 \times S \times h_{\max} \times \theta \times \rho$.
+Appliquée à l'acide 54 :
+\[
+2 \times 95 \times 9{,}40 \times 0{,}50 \times 1{,}66 = \num{1482,4}
+\]
+à comparer aux \num{1483,6} annoncés par le document : \textbf{concordance au dixième
+près}.
+
+\begin{resultat}[title={Conclusion}]
+La méthode de calcul est correcte --- elle reproduit exactement les valeurs du document pour
+l'acide 54. L'erreur est donc \emph{localisée} sur l'acide 29.
+\end{resultat}
+
+\subsection{Signature de l'erreur}
+
+Les deux valeurs erronées présentent le même facteur :
+\[
+\frac{364{,}5}{229{,}8} = 1{,}5860
+\qquad
+\frac{1530{,}7}{965{,}3} = 1{,}5858
+\]
+Un facteur constant sur les deux bornes indique une erreur de saisie unique --- un
+coefficient mal recopié --- et non deux erreurs indépendantes.
+
+\subsection{Arbitrage et impact}
+
+Les valeurs recalculées sont retenues. Un argument supplémentaire l'impose : les stocks
+\emph{initiaux} sont produits par la fonction de conversion. Comparer un stock calculé par
+cette fonction à une borne obtenue autrement serait dimensionnellement incohérent.
+
+L'impact est majeur. Avec la borne correcte (\num{965} au lieu de \num{1531}), plusieurs
+lignes atteignent leur capacité et les transferts interzones deviennent
+\textbf{indispensables} --- ce qui donne rétrospectivement tout son sens à l'existence de la
+matrice de transferts dans le cahier des charges.
+
+\section{A-04 --- La limite des décanteurs porte-t-elle sur l'entrée ou la sortie ?}
+
+Le guide du procédé se contredit. En un endroit, il précise
+« \emph{Total Clarification Limit: 1000 t/day per line (before yield)} », donc en entrée.
+Ailleurs, un exemple calcule « envoyer $1000/0{,}9 = 1111$ t en clarification $\to$ environ
+\SI{1000}{\tonne} de DEC CL », ce qui place la limite en sortie. Les règles de validation du
+même dossier vérifient quant à elles une quantité \emph{envoyée}.
+
+\paragraph{Arbitrage.} La limite porte sur l'entrée, pour trois raisons convergentes :
+c'est la lecture physique --- un décanteur est dimensionné par le débit qu'il reçoit, il
+s'agit d'un temps de séjour ; la mention « \emph{before yield} » est explicite ; et deux
+sources sur trois concordent.
+
+\section{A-05 --- Où retournent les boues de cocristallisation ?}
+
+Six sources, deux réponses opposées.
+
+\begin{table}[H]
+\centering
+\caption{Sources contradictoires sur la destination des boues de cocristallisation}
+\label{tab:boues-coc}
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Source} & \textbf{Destination indiquée} \\
+\midrule
+Guide du procédé (référence définitive) & stock d'acide \textbf{29} standard \\
+Référence du scénario réel & stock d'acide \textbf{29} standard \\
+Simulation détaillée & stock d'acide \textbf{29} standard \\
+Fichier de constantes & stock d'acide \textbf{54} NCL \\
+Spécification du format de sortie & stock d'acide \textbf{54} NCL \\
+Document archivé & stock d'acide \textbf{54} NCL \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Arbitrage.} Retour au stock d'acide 29 standard, conformément à la hiérarchie des
+sources : le guide se déclare référence définitive, la référence du scénario le confirme, et
+la simulation applique effectivement ce choix. Deux des trois sources contraires sont
+archivées.
+
+\begin{encadre}[title={Un argument physique vient confirmer l'arbitrage documentaire}]
+Les eaux mères de cristallisation sont chargées d'impuretés. Les renvoyer au niveau 54
+réintroduirait ces impuretés dans un acide déjà concentré. Les diluer dans la masse de
+l'acide 29, en amont de toute la chaîne de purification, est plus sain.
+
+\emph{Le choix physiquement le plus plausible coïncide avec le choix documentairement le
+mieux appuyé.} Le point de retour est néanmoins resté paramétrable dans le code, pour
+permettre une bascule immédiate si l'encadrant tranche autrement.
+\end{encadre}
+
+\section{A-08 --- Les capacités d'échelon sont-elles en t/h ou en t/j ?}
+
+Le fichier de constantes annote les capacités « tonnes/hour », tout en fournissant la
+formule $\Pi = C \times h / 24$.
+
+\begin{proof}[Preuve par l'absurde]
+Si $C$ était en \si{\tonne\per\hour}, un échelon de \SI{420}{\tonne\per\hour} marchant
+\SI{24}{\hour} produirait \SI{10080}{\tonne} par jour, et la division par 24 n'aurait aucun
+sens dimensionnel. Cinq lignes à ce régime produiraient plus de
+\SI{50000}{\tonne}~\PdeuxOcinq{} par jour, soit près de vingt fois la production quotidienne
+du groupe.
+\end{proof}
+
+Les capacités sont donc en tonnes par jour à plein régime, et la formule est un simple
+prorata horaire. L'impact sur les calculs est nul --- la formule était déjà appliquée
+correctement --- mais la clarification importe pour la documentation et le code.
+
+\section{A-10 --- Le fichier des profils qualité est absent}
+
+Ce fichier est qualifié d'essentiel dans quatre documents, mais ne figure pas dans le
+dossier remis. Ses coefficients ont dû être reconstitués un à un à partir du texte des
+documents.
+
+\begin{table}[H]
+\centering
+\caption{Profils qualité reconstruits (tonnes d'acide par tonne d'engrais)}
+\label{tab:profils}
+\begin{tabular}{@{}llS[table-format=1.3]@{}}
+\toprule
+\textbf{Produit} & \textbf{Type d'acide} & {\textbf{Coefficient}} \\
+\midrule
+DAP\_STANDARD & acide 29 std & 0.127 \\
+DAP\_STANDARD & acide 54 NCL & 0.354 \\
+TSP\_EURO & acide 54 dec total & 0.379 \\
+MAP\_11\_52\_EU & acide 29 dec & 0.030 \\
+MAP\_11\_52\_EU & acide 54 dec total & 0.129 \\
+NPK\_12\_24\_12\_EU & acide 54 dec total & 0.091 \\
+NPK\_15\_15\_15\_EU & acide 29 dec & 0.171 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Le fichier reconstruit indique explicitement, pour chaque coefficient, le document dont il
+provient, et porte la mention « reconstruit » afin d'être remplacé sans ambiguïté dès que
+l'original sera disponible.
+
+\begin{encadre}[title={Alerte supplémentaire}]
+Un même produit apparaît sous \emph{deux noms différents} dans le même scénario :
+\texttt{MAP\_11\_54\_NE\_EU} et \texttt{MAP\_11\_52\_EU}. Il s'agit vraisemblablement d'une
+coquille. Le second est retenu, cohérent avec la nomenclature commerciale MAP 11-52-0.
+\end{encadre}
+
+\section{Les deux données manquantes}
+
+\subsection{La borne maximale des transferts}
+
+Le script de test fourni importe et utilise une constante \texttt{MAX\_TRANSFER}, mais le
+fichier de constantes ne définit que les minima. La donnée existe donc dans le code
+d'origine sans avoir été transcrite dans la documentation.
+
+\subsection{Le seuil de production obligatoire de DEC\_CL}
+
+C'est le seul endroit du dossier où une règle est qualifiée d'\emph{obligatoire} sans être
+chiffrée. Or elle est décisive : sans seuil, l'optimiseur ne produira jamais de DEC\_CL et
+violera la règle métier --- exactement le risque que le document anticipe lui-même.
+
+\begin{encadre}[title={La démarche adoptée face à une donnée manquante}]
+Ni deviner en silence, ni s'arrêter, mais :
+\begin{enumerate}
+  \item poser une valeur d'attente \textbf{explicitement signalée comme telle} ;
+  \item la rendre \textbf{paramétrable}, jamais écrite en dur ;
+  \item \textbf{poser la question} à qui détient la réponse ;
+  \item \textbf{mesurer sa sensibilité} par une analyse dédiée.
+\end{enumerate}
+
+Le chapitre~\ref{chap:resultats} montre que cette démarche a permis, pour l'une des deux
+données, de \emph{résoudre la question sans jamais obtenir la réponse}.
+\end{encadre}
+
+\section{Enseignements}
+
+\subsection{Ne jamais recopier un chiffre --- le recalculer}
+
+Quatre des onze anomalies sont de simples erreurs arithmétiques. Toutes ont été détectées en
+réappliquant les formules du document à ses propres données.
+
+\emph{Conséquence pour le code} : aucune valeur dérivée n'y est écrite en dur. Tout ce qui
+peut être calculé l'est, à partir des données primaires, et un test unitaire vérifie chaque
+formule.
+
+\subsection{Verrouiller un constat par un test}
+
+Un constat documenté mais non testé finit par être oublié. Chaque anomalie arbitrée a donc
+donné lieu à un test automatisé qui échouera si la valeur retenue change :
+
+\begin{lstlisting}[language=Python, caption={Test verrouillant l'anomalie A-02}, label={lst:test-a02}]
+def test_bornes_29_different_du_dossier_anomalie_a02():
+    """Les bornes recalculees s'ecartent du dossier d'un facteur 1,586."""
+    z_min, z_max = units.bornes_stock_29()
+    assert z_max == pytest.approx(965.3, abs=0.5)
+    assert 1530.7 / z_max == pytest.approx(1.586, abs=0.01)
+\end{lstlisting}
+
+Si l'encadrant fournit un jour d'autres valeurs, ce test échouera et signalera qu'il faut
+réexaminer l'arbitrage.

@@ -1,0 +1,401 @@
+\chapter{Le procédé industriel}
+\label{chap:procede}
+
+Ce chapitre décrit le système physique, organe par organe, dans l'ordre où la matière le
+traverse. Chaque section se termine par la contrainte mathématique qui en découle, dont la
+formulation complète est donnée au chapitre~\ref{chap:modelisation}.
+
+\section{Vue d'ensemble}
+
+\begin{figure}[H]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[
+  proc/.style={rectangle, draw=ocpbleu, thick, fill=white, rounded corners=2pt,
+               text width=2.9cm, align=center, minimum height=1.0cm, font=\scriptsize},
+  cuve/.style={cylinder, shape border rotate=90, aspect=0.28, draw=ocpvert, thick,
+               fill=ocpvert!8, text width=1.9cm, align=center, minimum height=1.0cm,
+               font=\scriptsize},
+  conso/.style={rectangle, draw=grisfonce, thick, fill=grisclair, rounded corners=2pt,
+                text width=2.6cm, align=center, minimum height=0.9cm, font=\scriptsize},
+  f/.style={-{Stealth[length=2.2mm]}, thick, draw=ocpbleu},
+  boue/.style={-{Stealth[length=2.2mm]}, thick, draw=rougealerte, dashed},
+]
+
+% --- Niveau 29 ---
+\node[proc] (prod29) at (0,0) {Production acide 29\\\textbf{imposée}};
+\node[proc] (dec) at (0,-1.7) {Décadmiation\\$0 / 750 / 1500$};
+\node[cuve] (s29s) at (3.6,0) {Stock\\29 std};
+\node[cuve] (s29d) at (3.6,-1.7) {Stock\\29 dec};
+
+% --- Niveau 54 ---
+\node[proc] (conc) at (7.4,-0.85) {Concentration\\par échelons\\\textbf{volume imposé}};
+\node[proc] (coc) at (11.2,0.35) {Cocristallisation\\\textbf{systématique}\\$80/20$};
+\node[proc] (clar) at (11.2,-2.1) {Clarification\\décanteurs\\$90/10$};
+\node[cuve] (s54) at (7.4,-3.4) {Stock\\54 NCL};
+
+% --- Central ---
+\node[cuve] (ir11) at (14.6,0.35) {IR11\\CoC + DEC\_CL};
+\node[cuve] (ir12) at (14.6,-2.1) {IR12\\CL};
+
+% --- Consommateurs ---
+\node[conso] (clients) at (14.6,-4.2) {Consommateurs};
+
+% --- Flux principaux ---
+\draw[f] (prod29) -- (s29s);
+\draw[f] (prod29) -- (dec);
+\draw[f] (dec) -- (s29d);
+\draw[f] (s29s) -- (conc);
+\draw[f] (s29d) -- (conc);
+\draw[f] (conc) -- (coc);
+\draw[f] (conc) -- (s54);
+\draw[f] (conc.east) to[out=-20,in=180] node[above,font=\tiny,pos=0.4] {dec} (clar.west);
+\draw[f] (s54) to[out=0,in=210] (clar.south west);
+\draw[f] (coc) -- (ir11);
+\draw[f] (clar.north east) to[out=40,in=250] node[right,font=\tiny,pos=0.3] {DEC\_CL} (ir11.south);
+\draw[f] (clar) -- (ir12);
+\draw[f] (ir11) -- (ir12);
+\draw[f] (ir12) -- (clients);
+
+% --- Transferts interzones ---
+\draw[f] (s29s.north) to[out=60,in=120,looseness=6] node[above,font=\tiny] {transferts interzones} (s29s.north);
+
+% --- Boucles de retour ---
+\draw[boue] (coc.north) to[out=100,in=60,looseness=1.1]
+   node[above,font=\tiny,pos=0.5] {boue \SI{20}{\percent}} (s29s.north east);
+\draw[boue] (clar.south) to[out=-90,in=-90,looseness=0.5]
+   node[below,font=\tiny,pos=0.5] {boue \SI{10}{\percent}} (s29s.south);
+\draw[boue] (clients.west) to[out=180,in=-90,looseness=0.7]
+   node[below,font=\tiny,pos=0.75] {retour EMAPHOS \SI{40}{\percent}} (s29s.south east);
+
+\end{tikzpicture}%
+}
+\caption{Schéma de flux du système. En trait plein bleu, les flux de matière descendants ;
+en tirets rouges, les trois boucles de recyclage qui remontent vers le niveau 29.}
+\label{fig:flux-general}
+\end{figure}
+
+La matière descend du niveau 29 vers le niveau 54, puis vers les consommateurs. Trois flux
+la font \textbf{remonter} : les deux boues de traitement et le retour d'EMAPHOS. Ce sont ces
+boucles qui rendent les bilans matière non triviaux.
+
+\section{Étage 1 --- La production d'acide 29}
+
+\subsection{Les six lignes}
+
+Le minerai est attaqué par l'acide sulfurique ; la réaction produit de l'acide phosphorique
+dilué et du gypse, séparés par filtration.
+
+\begin{table}[H]
+\centering
+\caption{Production d'acide 29 du scénario de référence}
+\label{tab:prod29}
+\begin{tabular}{@{}lS[table-format=4.0]l@{}}
+\toprule
+\textbf{Ligne} & {\textbf{Production} (\tP/j)} & \textbf{Ligne 54 alimentée} \\
+\midrule
+13AB & 1500 & 14AB \\
+13CD & 1500 & 14CD \\
+13XY & 1500 & 14XY \\
+13ZU & 800  & 14ZU \\
+13E  & 1500 & 14EXT \\
+13F  & 1500 & \textbf{aucune} \\
+\midrule
+\textbf{Total} & \bfseries 8300 & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Deux particularités méritent d'être relevées. La ligne 13ZU produit nettement moins que les
+autres : elle est partiellement à l'arrêt. Surtout, \textbf{la ligne 13F n'alimente aucune
+concentration} : tout son acide part directement vers les consommateurs ou en transfert.
+Elle constitue de fait la réserve souple du système, ce que le modèle retrouvera seul.
+
+\begin{encadre}[title={Conséquence pour le modèle}]
+La production est un \emph{paramètre}, noté $P_\ell$. C'est le premier point qui surprend :
+dans beaucoup de problèmes académiques, la production est la variable principale. Ici, elle
+est \textbf{subie}.
+\end{encadre}
+
+\subsection{La décadmiation}
+
+Le cadmium est un métal lourd toxique naturellement présent dans le minerai. Les
+réglementations européennes en plafonnent la teneur dans les engrais, d'où la nécessité de
+le retirer.
+
+Le retrait s'effectue par filtres, au niveau 29, juste après la production. \textbf{Un
+filtre traite \SI{750}{\tonne} par jour} et une ligne en compte au plus deux. Il en découle
+la contrainte la plus structurante de tout le modèle :
+
+\begin{equation}
+d_\ell \in \{0,\; 750,\; 1500\}
+\label{eq:niveaux-decad}
+\end{equation}
+
+Ce n'est pas une variable continue. On ne peut pas décadmier \SI{312}{\tonne} : on allume
+zéro, un ou deux filtres, et rien d'autre.
+
+La décadmiation ne crée pas de matière, elle \emph{répartit} la production existante :
+\begin{equation}
+P_\ell = \underbrace{(P_\ell - d_\ell)}_{\text{reste standard}} + \underbrace{d_\ell}_{\text{devient décadmié}}
+\end{equation}
+
+\begin{encadre}[title={Conséquence pour le modèle}]
+Le caractère discret des niveaux impose des \textbf{variables binaires}, donc une
+formulation en nombres entiers. C'est ce qui fait passer le problème d'un simple programme
+linéaire à un MILP.
+\end{encadre}
+
+\subsection{Les transferts interzones}
+
+Les transferts d'acide 29 \emph{standard} entre lignes servent à rééquilibrer les stocks :
+évacuer une cuve qui va déborder, alimenter une cuve qui va se vider, ou nourrir une
+concentration plus gourmande que sa ligne amont.
+
+Trois règles s'imposent.
+
+\begin{enumerate}
+  \item \textbf{Seul l'acide standard se transfère.} L'acide décadmié est traité
+        immédiatement et ne circule jamais entre lignes.
+  \item \textbf{Toutes les liaisons n'existent pas} (tableau~\ref{tab:matrice-interzone}).
+  \item \textbf{Les quantités sont bornées} : un transfert vaut soit zéro, soit au moins
+        \SI{100}{\tonne}. En deçà, l'opération n'a pas de sens industriel --- amorcer une
+        pompe, mobiliser un opérateur et rincer une conduite pour quelques tonnes serait
+        absurde.
+\end{enumerate}
+
+\begin{table}[H]
+\centering
+\caption{Matrice des transferts interzones autorisés (14 liaisons sur 30 couples possibles)}
+\label{tab:matrice-interzone}
+\begin{tabular}{@{}l*{6}{c}@{}}
+\toprule
+\textbf{De $\downarrow$ / Vers $\rightarrow$} & \textbf{E} & \textbf{F} & \textbf{AB} & \textbf{CD} & \textbf{XY} & \textbf{ZU} \\
+\midrule
+E  & --- & --- & $\times$ & $\times$ & --- & --- \\
+F  & $\times$ & --- & $\times$ & --- & $\times$ & $\times$ \\
+AB & $\times$ & --- & --- & $\times$ & --- & --- \\
+CD & $\times$ & --- & $\times$ & --- & $\times$ & --- \\
+XY & --- & --- & --- & $\times$ & --- & $\times$ \\
+ZU & --- & --- & --- & --- & $\times$ & --- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Deux observations sur cette matrice. Elle n'est \textbf{pas symétrique} : la liaison
+CD~$\to$~E existe alors que E~$\to$~F n'existe pas, ce qui traduit des conduites à sens
+unique ou des dénivelés. Et la ligne F est le meilleur émetteur, avec quatre destinations,
+tout en ne pouvant recevoir de personne --- cohérent avec son statut de ligne
+structurellement excédentaire.
+
+\begin{encadre}[title={Conséquence pour le modèle}]
+Un transfert est une variable \textbf{semi-continue} : soit nulle, soit comprise entre
+\SI{100}{\tonne} et une borne supérieure. C'est la deuxième source de variables binaires.
+\end{encadre}
+
+\section{Étage 2 --- La concentration}
+\label{sec:concentration}
+
+\subsection{Le rendement de 100\,\%}
+
+L'acide est chauffé sous vide ; l'eau s'évapore et le titre monte de \SI{26}{\percent} à
+\SI{50}{\percent}. La documentation affirme un \emph{rendement massique de
+\SI{100}{\percent}}, ce qui paraît d'abord contredire la conservation de la masse.
+
+\begin{encadre}[title={La résolution de l'apparent paradoxe}]
+Prenons \SI{1000}{\tonne} de solution à \SI{26}{\percent}, soit \SI{260}{\tonne} de
+\PdeuxOcinq{}. Après concentration à \SI{50}{\percent}, ces \SI{260}{\tonne} sont diluées
+dans \SI{520}{\tonne} de solution.
+
+\medskip
+\begin{tabular}{@{}lrcl@{}}
+Masse d'acide : & \SI{1000}{\tonne} & $\to$ & \SI{520}{\tonne} \quad(\textbf{non conservée}) \\
+Masse de \PdeuxOcinq{} : & \SI{260}{\tonne} & $\to$ & \SI{260}{\tonne} \quad(\textbf{conservée}) \\
+\end{tabular}
+\medskip
+
+Le rendement vaut $1$ \emph{si et seulement si} l'unité de compte est la tonne de
+\PdeuxOcinq{}. C'est la deuxième preuve de la section~\ref{sec:unite}.
+\end{encadre}
+
+\subsection{Les échelons}
+
+Un échelon est une unité élémentaire de concentration. Sa production journalière vaut
+\begin{equation}
+\kappa_e = C_e \times \frac{h_e}{24}
+\label{eq:prod-echelon}
+\end{equation}
+où $C_e$ est sa capacité à plein régime et $h_e$ son nombre d'heures de marche, qui est une
+donnée d'entrée.
+
+\begin{table}[H]
+\centering
+\caption{Répartition des échelons par ligne de concentration}
+\label{tab:echelons}
+\begin{tabular}{@{}llS[table-format=4.0]l@{}}
+\toprule
+\textbf{Ligne} & \textbf{Échelons (capacité \tP/j)} & {\textbf{Total}} & \textbf{Cocristallisation} \\
+\midrule
+14EXT & E(420) F(420) G(420) H(420) & 1680 & tous \\
+14AB & A(300) B(300) I(590) J(590) K(300) L(300) & 2380 & sous-ensemble \\
+14CD & C(250) D(250) M(290) N(250) & 1040 & aucun \\
+14XY & X(300) Y(250) P(250) Q(250) & 1050 & aucun \\
+14ZU & Z(250) U(300) R(250) S(300) V(590) W(590) & 2280 & aucun \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{La production d'acide 54 est imposée}
+
+Les heures de marche étant une donnée, la production de chaque ligne est entièrement
+déterminée avant toute optimisation :
+\begin{equation}
+\Pi_m = \sum_{e \in \Ech_m} \kappa_e
+\end{equation}
+
+Il en découle que la quantité d'acide 29 à envoyer en concentration n'est pas libre : elle
+doit \emph{exactement} égaler ce que la ligne va produire. On ne décide pas \emph{combien}
+concentrer, mais seulement quelle \textbf{proportion d'acide décadmié} mettre dans
+l'alimentation.
+
+\subsection{Le chemin imposé de l'acide décadmié}
+
+Lorsqu'on concentre de l'acide 29 décadmié, on obtient de l'acide 54 NCL décadmié, dont le
+parcours est entièrement contraint :
+
+\begin{center}
+\small
+acide 29 dec $\longrightarrow$ concentration $\longrightarrow$ 54 NCL DEC
+$\longrightarrow$ \textbf{clarification obligatoire} $\longrightarrow$ DEC\_CL
+$\longrightarrow$ IR11
+\end{center}
+
+Il n'existe \emph{aucun} stock local pour le 54 NCL décadmié : il est clarifié
+immédiatement.
+
+\begin{encadre}[title={Une simplification élégante}]
+L'entrée de clarification décadmiée est donc \emph{identiquement égale} à l'acide décadmié
+concentré. Ce n'est pas une décision indépendante, mais une simple substitution. Elle
+supprime cinq variables et cinq contraintes, et rend automatique le couplage entre
+décadmiation et capacité de décantation.
+\end{encadre}
+
+\section{Étage 3a --- La cocristallisation}
+
+Un refroidissement contrôlé provoque la cristallisation de l'acide ; les impuretés restent
+en solution et les cristaux, très purs, sont récupérés puis refondus. Le procédé rend
+\SI{80}{\percent} d'acide CoC dirigé vers IR11, et \SI{20}{\percent} de boue recyclée vers le
+stock d'acide 29 standard. Il n'existe que sur les lignes 14EXT et 14AB.
+
+\begin{alerte}[title={Le point le plus contre-intuitif du sujet}]
+La cocristallisation \textbf{ne s'adapte pas à la demande}. Si un échelon lui est affecté,
+\emph{tout} l'acide qu'il produit part en cocristallisation --- sans modulation, même si
+personne ne demande de CoC.
+
+Industriellement, cela s'explique : ces unités ne se démarrent et ne s'arrêtent pas
+facilement, on les fait tourner en continu.
+\end{alerte}
+
+Dans le scénario de référence, cette règle produit \SI{2431}{\tonne} de CoC par jour, pour un
+besoin en acide de qualité décadmiée de \SI{987}{\tonne} seulement --- un facteur $2{,}5$.
+
+\begin{encadre}[title={Conséquence pour le modèle}]
+La cocristallisation ne donne lieu à \textbf{aucune variable de décision} : elle est
+entièrement calculée en prétraitement. En faire une décision produirait un modèle plus gros,
+plus lent, et surtout \emph{faux}, puisqu'il proposerait des plans que l'usine ne peut pas
+exécuter.
+\end{encadre}
+
+\section{Étage 3b --- La clarification}
+
+La décantation par gravité sépare les solides en suspension. Le procédé rend
+\SI{90}{\percent} d'acide clarifié et \SI{10}{\percent} de boue recyclée au niveau 29.
+
+Deux usages se partagent la même ressource.
+
+\begin{table}[H]
+\centering
+\caption{Les deux usages concurrents des décanteurs}
+\label{tab:usages-decanteurs}
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Usage} & \textbf{Entrée} & \textbf{Destination} & \textbf{Nature} \\
+\midrule
+Clarification ordinaire & 54 NCL & IR12 & \textbf{décision} de l'optimiseur \\
+Clarification décadmiée & 54 NCL DEC & IR11 & \textbf{obligatoire} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Chaque ligne dispose de deux décanteurs de \SI{500}{\tonne} par jour, soit une capacité
+\emph{entrante} de \SI{1000}{\tonne} par jour, tous usages confondus.
+
+\begin{encadre}[title={Le couplage central du problème}]
+Cette unique contrainte crée un arbitrage en cascade :
+
+\begin{center}
+\small
+décadmier plus $\rightarrow$ plus de DEC à clarifier (obligatoire) $\rightarrow$
+moins de capacité pour le NCL $\rightarrow$ moins de CL vers IR12 $\rightarrow$
+risque sur la demande de U53
+\end{center}
+
+Et symétriquement, décadmier moins met en péril la qualité du mélange d'IR11. C'est cet
+arbitrage que l'optimisation résout, et qu'un planificateur ne peut pas trancher de tête.
+\end{encadre}
+
+\section{Les stockages centraux}
+
+Le bac IR11 reçoit le CoC et le DEC\_CL, \emph{mélangés} ; le bac IR12 reçoit l'acide
+clarifié ordinaire. Une règle de distribution s'applique à tous les acides traités :
+
+\begin{encadre}
+\textbf{Aucun acide traité n'est expédié directement depuis sa ligne de production.} Les
+qualités CL, CoC et DEC\_CL transitent obligatoirement par IR11 ou IR12.
+
+\emph{Conséquence mathématique heureuse} : puisque les bacs centraux desservent tous les
+consommateurs, ces trois qualités échappent aux contraintes d'interconnexion. Seuls les
+acides livrés depuis un stock local y sont soumis.
+\end{encadre}
+
+\section{Synthèse : ce qui est décidé, ce qui est subi}
+
+Le tableau~\ref{tab:decide-subi} résume l'ensemble du chapitre. C'est la table à retenir.
+
+\begin{table}[H]
+\centering
+\caption{Frontière entre paramètres et variables}
+\label{tab:decide-subi}
+\begin{tabular}{@{}lp{3.1cm}p{6.3cm}@{}}
+\toprule
+\textbf{Élément} & \textbf{Nature} & \textbf{Justification} \\
+\midrule
+Production d'acide 29 & Paramètre & imposée par l'amont \\
+Heures de marche & Paramètre & planning et maintenance \\
+Production d'acide 54 & Paramètre & déduite des heures de marche \\
+Échelons cocristallisants & Paramètre & configuration du scénario \\
+Production de CoC & Paramètre & systématique, entièrement déduite \\
+Rendements & Paramètre & physique du procédé \\
+Matrices d'interconnexion & Paramètre & tuyauterie existante \\
+Capacités & Paramètre & équipements installés \\
+Demandes & Paramètre & imposées par le commerce \\
+\midrule
+Niveau de décadmiation & \textbf{Variable} & discrète : $\{0, 750, 1500\}$ \\
+Répartition std/dec & \textbf{Variable} & continue, somme imposée \\
+Quantité clarifiée & \textbf{Variable} & continue, sous capacité \\
+Transferts interzones & \textbf{Variable} & semi-continue \\
+Affectation ligne $\to$ client & \textbf{Variable} & continue, sous interconnexion \\
+Prélèvements sur IR11/IR12 & \textbf{Variable} & continue \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{encadre}[title={La leçon de modélisation}]
+Le système paraît immense, mais l'espace de décision est petit. L'essentiel du travail
+consiste à \textbf{calculer correctement les paramètres} --- production d'acide 54,
+cocristallisation systématique, besoins issus des recettes --- \emph{avant} de construire le
+modèle d'optimisation.
+
+C'est exactement l'architecture retenue au chapitre~\ref{chap:implementation} :
+prétraitement déterministe, puis optimisation, puis validation.
+\end{encadre}

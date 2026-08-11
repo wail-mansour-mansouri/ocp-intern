@@ -1,0 +1,385 @@
+\chapter{Résultats et validation}
+\label{chap:resultats}
+
+\section{Synthèse}
+
+\begin{table}[H]
+\centering
+\caption{Indicateurs de la résolution sur le scénario de référence}
+\label{tab:synthese-resultats}
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Indicateur} & \textbf{Valeur} \\
+\midrule
+Statut du solveur & \textbf{Optimal} \\
+Temps de résolution & moins de \SI{0.1}{\second} (trois passes) \\
+Taille du problème & 170 variables dont 29 binaires, 138 contraintes \\
+Demande satisfaite & \textbf{\SI{100}{\percent}} --- aucun manque \\
+Validation indépendante & \textbf{86 contrôles réussis sur 86} \\
+Niveau 1 (demande non servie) & \num{0,000} \\
+Niveau 2 (violations molles) & \num{1268,3} \\
+Niveau 3 (coût opératoire) & \num{3111,9} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Toute la demande est servie et la solution respecte l'intégralité des règles de procédé.
+Mais le système \emph{ne tient pas dans ses limites de stockage} : deux violations
+structurelles subsistent, qu'aucune décision d'exploitation ne peut corriger.
+
+\section{Le plan d'exploitation optimal}
+
+\subsection{Décadmiation}
+
+Une seule ligne décadmie, au niveau minimal non nul : \SI{750}{\tonne} sur 13XY, soit un
+filtre. C'est le strict nécessaire pour couvrir le besoin de U116BC en acide 29 décadmié
+(\SI{363,6}{\tonne}) et alimenter la production obligatoire de DEC\_CL.
+
+Le niveau 3 de l'objectif pénalisant la décadmiation, l'optimiseur ne fait rien de plus que
+ce que les contraintes exigent.
+
+\subsection{Transferts interzones}
+
+\begin{table}[H]
+\centering
+\caption{Transferts retenus par l'optimisation}
+\label{tab:transferts}
+\begin{tabular}{@{}llS[table-format=3.1]@{}}
+\toprule
+\textbf{Origine} & \textbf{Destination} & {\textbf{Quantité} (\tP)} \\
+\midrule
+13F & 13ZU & 758.8 \\
+13F & 13E & 603.3 \\
+13CD & 13AB & 100.0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Trois transferts seulement, et leur logique est limpide. La ligne 13F est la source : seule
+ligne sans concentration associée, elle produit \SI{1500}{\tonne} qu'elle n'a presque pas
+moyen de consommer. Les lignes 13ZU et 13E sont les puits : la première ne produit que
+\SI{800}{\tonne} mais doit charger \SI{1481,7}{\tonne} en concentration, la seconde produit
+\SI{1500}{\tonne} mais doit charger \SI{1505}{\tonne} \emph{et} livrer \SI{700}{\tonne} à
+IMACID. Le transfert 13CD $\to$ 13AB est exactement au minimum d'expédition : c'est un
+appoint, non un flux de fond.
+
+\begin{resultat}[title={Un indice de validité}]
+Le modèle retrouve seul le rôle que la ligne 13F joue réellement dans l'usine : celui de
+\textbf{réserve souple} du système. Cette concordance entre un résultat calculé et une
+pratique d'exploitation constitue un bon signe de validité de la formulation.
+\end{resultat}
+
+\subsection{Clarification}
+
+\begin{table}[H]
+\centering
+\caption{Répartition de la charge des décanteurs}
+\label{tab:clarification}
+\begin{tabular}{@{}lS[table-format=3.1]S[table-format=3.1]S[table-format=3.1]S[table-format=2.1]@{}}
+\toprule
+\textbf{Ligne} & {\textbf{NCL}} & {\textbf{DEC}} & {\textbf{Total}} & {\textbf{Occupation} (\si{\percent})} \\
+\midrule
+14XY & 0.0 & 476.7 & 476.7 & 47.7 \\
+14ZU & 722.5 & 0.0 & 722.5 & 72.3 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+La séparation est nette : 14XY, seule ligne habilitée à produire du DEC\_CL, y consacre ses
+décanteurs ; 14ZU produit l'acide clarifié destiné à IR12, donc à U53. Les lignes 14AB et
+14CD, bien qu'habilitées, ne clarifient pas --- ce n'est pas nécessaire, IR12 contenant déjà
+\SI{3821,6}{\tonne} pour une demande de \SI{1500}{\tonne}.
+
+\section{Les deux violations structurelles}
+
+\subsection{IR11 déborde de 1\,016 tonnes par jour}
+
+\begin{equation}
+\underbrace{\num{5514,7}}_{\text{initial}} + \underbrace{\num{2860,4}}_{\text{entrées}} - \underbrace{\num{986,7}}_{\text{sorties}} = \num{7388,3}\tP
+\qquad\text{pour une capacité de } \num{6372,4}\tP
+\end{equation}
+
+soit un remplissage de \SI{115,9}{\percent}.
+
+\paragraph{Origine.} La cocristallisation est systématique : les quatre échelons de 14EXT et
+quatre des six échelons de 14AB y sont affectés et traitent donc tout ce qu'ils produisent,
+quelle que soit la demande. Il en résulte \SI{2431}{\tonne} de CoC par jour pour un besoin
+en acide de qualité décadmiée de \SI{987}{\tonne} seulement.
+
+\paragraph{Pourquoi l'optimiseur ne peut rien y faire.} La production de CoC est un
+\emph{paramètre}, non une variable ; les sorties sont bornées par la demande, qui est fixée.
+Le solde net atteint \SI{+1444}{\tonne} par jour, dans un bac qui n'offrait que
+\SI{858}{\tonne} de marge.
+
+\subsection{Le stock de 14EXT reste sous sa bande de sécurité}
+
+Le stock final s'établit à \SI{220,8}{\tonne} pour une bande de
+\SIrange{473,1}{1482,4}{\tonne}, soit un manque de \SI{252,3}{\tonne}.
+
+\paragraph{Origine.} Les \emph{quatre} échelons de 14EXT étant affectés à la
+cocristallisation, la ligne ne produit \textbf{aucun} acide 54 NCL ordinaire. Son stock ne
+peut donc que rester à son niveau initial, déjà trop bas.
+
+\subsection{Une cause unique}
+
+Les deux violations remontent à la même décision de configuration : le nombre d'échelons
+affectés à la cocristallisation.
+
+\section{Analyse de sensibilité}
+
+\subsection{Nombre d'échelons de 14EXT en cocristallisation}
+
+\begin{table}[H]
+\centering
+\caption{Effet du nombre d'échelons cocristallisants de 14EXT}
+\label{tab:sensib-coc}
+\begin{tabular}{@{}lS[table-format=4.1]S[table-format=4.1]S[table-format=4.1]S[table-format=4.1]@{}}
+\toprule
+\textbf{Configuration} & {\textbf{CoC produit}} & {\textbf{Stock IR11}} & {\textbf{Dépassement}} & {\textbf{Niveau 2}} \\
+\midrule
+4 sur 4 \emph{(actuel)} & 2431.3 & 7388.3 & 1016.0 & 1268.3 \\
+3 sur 4 & 2235.3 & 7157.7 & 785.4 & 792.7 \\
+2 sur 4 & 1899.3 & 6762.5 & 390.1 & 390.1 \\
+\textbf{1 sur 4} & 1563.3 & 6367.2 & \bfseries 0.0 & \bfseries 0.0 \\
+0 sur 4 & 1227.3 & 5971.9 & 0.0 & 0.0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{resultat}[title={Recommandation principale}]
+Ramener de \textbf{quatre à un} le nombre d'échelons de 14EXT affectés à la cocristallisation
+résorbe \textbf{intégralement} les deux violations --- le niveau 2 passe de \num{1268,3} à
+\num{0} --- tout en continuant à servir \SI{100}{\percent} de la demande.
+
+Le gain est double : IR11 rentre dans sa capacité, \emph{et} la ligne 14EXT se remet à
+produire de l'acide 54 NCL ordinaire, ce qui ramène son stock dans sa bande de sécurité.
+
+Cette action ne demande \textbf{aucun investissement} : seulement une reconfiguration de la
+marche des échelons.
+\end{resultat}
+
+\subsection{Part minimale de DEC\_CL dans IR11 (hypothèse H8)}
+
+\begin{table}[H]
+\centering
+\caption{Effet du paramètre $\alpha$}
+\label{tab:sensib-alpha}
+\begin{tabular}{@{}S[table-format=1.2]S[table-format=3.1]S[table-format=4.1]S[table-format=4.1]l@{}}
+\toprule
+{$\bm{\alpha}$} & {\textbf{DEC\_CL}} & {\textbf{Stock IR11}} & {\textbf{Dépassement}} & \textbf{Statut} \\
+\midrule
+0.00 & 0.0 & 6959.3 & 586.9 & optimal \\
+0.05 & 128.0 & 7087.2 & 714.9 & optimal \\
+0.10 & 270.1 & 7229.4 & 857.1 & optimal \\
+0.15 & 429.1 & 7388.3 & 1016.0 & optimal \emph{(hypothèse)} \\
+0.20 & 607.8 & 7567.1 & 1194.8 & optimal \\
+0.25 & {---} & {---} & {---} & \textbf{infaisable} \\
+0.30 & {---} & {---} & {---} & \textbf{infaisable} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Deux enseignements.
+
+\paragraph{Le domaine admissible de $\alpha$ est borné : $\alpha \lesssim 0{,}22$.}
+Au-delà, le modèle n'a plus de solution. La raison est structurelle : \emph{seule} la ligne
+14XY est habilitée à produire du DEC\_CL, et la capacité de ses échelons non
+cocristallisants (\SI{820,8}{\tonne}) plafonne la production possible.
+
+\begin{encadre}[title={Information à remonter à l'encadrant}]
+Si la valeur métier de $\alpha$ dépasse \num{0,22}, la configuration actuelle ne peut pas la
+respecter. Il faudrait habiliter une \textbf{seconde ligne} à produire du DEC\_CL. Cette
+conclusion a pu être établie \emph{sans connaître} la valeur de $\alpha$.
+\end{encadre}
+
+\paragraph{La contrainte de qualité n'est pas la cause du débordement.} Même avec
+$\alpha = 0$, IR11 déborde encore de \SI{586,9}{\tonne}. La contrainte ne fait qu'accentuer
+un problème dont l'origine est ailleurs.
+
+\subsection{Borne maximale des transferts (hypothèse H7)}
+
+\begin{table}[H]
+\centering
+\caption{Effet du paramètre $\tau^{\max}$}
+\label{tab:sensib-tau}
+\begin{tabular}{@{}S[table-format=4.0]S[table-format=1.0]S[table-format=4.1]S[table-format=4.1]@{}}
+\toprule
+{$\bm{\tau^{\max}}$ (\tP)} & {\textbf{Nombre de transferts}} & {\textbf{Niveau 2}} & {\textbf{Niveau 3}} \\
+\midrule
+300 & 6 & 1430.4 & 3392.3 \\
+500 & 4 & 1268.3 & 3161.9 \\
+750 & 3 & 1268.3 & 3111.9 \\
+1000 & 3 & 1268.3 & 3111.9 \\
+1500 & 3 & 1268.3 & 3111.9 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{resultat}[title={Une incertitude transformée en non-problème}]
+À partir de \SI{750}{\tonne}, la solution ne bouge plus : le choix de \SI{1000}{\tonne}
+comme valeur d'attente n'a \emph{aucune} influence sur le résultat.
+
+L'incertitude de l'hypothèse H7 est donc sans conséquence. La question posée à l'encadrant
+passe de « priorité haute » à simplement informative --- \textbf{elle a été résolue sans
+qu'une réponse soit nécessaire}.
+
+C'est précisément ce qu'on attend d'une analyse de sensibilité : elle ne devine pas la
+donnée manquante, elle mesure l'effet de son absence.
+\end{resultat}
+
+\section{Lever la contrainte de configuration}
+\label{sec:mode-decidable}
+
+Les deux violations structurelles n'étant imputables ni à l'optimiseur ni à l'exploitation,
+mais au \emph{statut} accordé à l'affectation des échelons --- un paramètre subi ---, il
+était naturel de mesurer ce que coûte ce statut. Un mode optionnel a donc été ajouté, dans
+lequel cette affectation devient une variable de décision binaire par échelon
+(décision~D-11). Il est \textbf{désactivé par défaut} : le comportement standard reste
+conforme au cahier des charges.
+
+\subsection{Formulation}
+
+Chaque échelon raccordé à une unité de cocristallisation reçoit une binaire $z_e$, et la
+production dirigée vers la cocristallisation devient une expression affine :
+\begin{equation}
+\Picoc_m = \sum_{e \in \Ech^{\mathrm{coc}}_m} \kappa_e\, z_e,
+\qquad G_m = \etacoc\, \Picoc_m
+\label{eq:coc-decidable}
+\end{equation}
+
+Toutes les contraintes qui utilisaient $\Picoc_m$ --- \Ctr{4b}, \Ctr{6}, \Ctr{7}, \Ctr{13},
+\Ctr{15} --- restent affines. Une seule a dû être généralisée : la capacité des échelons non
+cocristallisants, qui valait le paramètre $\Pincl_m$, devient $\Pi_m - \Picoc_m$. Éteindre
+un échelon cocristallisant libère en effet de la capacité pour l'acide décadmié.
+
+\subsection{Résultat}
+
+\begin{table}[H]
+\centering
+\caption{Effet du passage en mode décidable}
+\label{tab:mode-decidable}
+\begin{tabular}{@{}lS[table-format=4.1]S[table-format=4.1]S[table-format=4.1]S[table-format=4.1]@{}}
+\toprule
+\textbf{Mode} & {\textbf{CoC produit}} & {\textbf{Dépassement IR11}} & {\textbf{Niveau 2}} & {\textbf{Niveau 3}} \\
+\midrule
+subi \emph{(défaut)} & 2431.3 & 1016.0 & 1268.3 & 3111.9 \\
+\textbf{décidable} & 472.0 & \bfseries 0.0 & \bfseries 0.0 & \bfseries 2125.2 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{resultat}
+Le mode décidable résorbe \textbf{intégralement} les deux violations structurelles, sert
+toujours \SI{100}{\percent} de la demande, et réduit de surcroît le coût opératoire. Le
+modèle éteint tous les échelons cocristallisants de 14EXT et n'en conserve qu'un seul sur
+14AB. Coût de la formulation : huit variables binaires supplémentaires.
+\end{resultat}
+
+\begin{alerte}[title={Une réserve qui doit accompagner ce chiffre}]
+Le modèle est \textbf{mono-période} : il n'a aucune raison de reconstituer le stock d'IR11.
+Ce bac étant rempli à \SI{86,5}{\percent} au départ, l'optimiseur réduit fortement la
+cocristallisation simplement pour le ramener vers le milieu de sa bande de sécurité --- ce
+que récompense le niveau~3 de l'objectif.
+
+Sur un horizon multi-période, l'arbitrage serait différent : il faudrait tenir compte de la
+reconstitution du stock pour les jours suivants.
+
+\textbf{Ce résultat chiffre donc un potentiel ; il ne constitue pas une consigne
+d'exploitation.} La nuance doit être portée telle quelle au service.
+\end{alerte}
+
+\section{Goulots d'étranglement}
+
+\begin{table}[H]
+\centering
+\caption{Ressources les plus tendues à l'optimum}
+\label{tab:goulots}
+\begin{tabular}{@{}lS[table-format=4.1]S[table-format=4.1]S[table-format=3.1]l@{}}
+\toprule
+\textbf{Ressource} & {\textbf{Utilisé}} & {\textbf{Capacité}} & {\textbf{Taux} (\si{\percent})} & \\
+\midrule
+Bac IR11 & 7388.3 & 6372.4 & 115.9 & dépassé \\
+Cuves 13F & 965.3 & 965.3 & 100.0 & saturé \\
+Cuves 13XY & 965.3 & 965.3 & 100.0 & saturé \\
+Cuves 13ZU & 965.3 & 965.3 & 100.0 & saturé \\
+Cuves 13CD & 950.7 & 965.3 & 98.5 & \\
+Décanteurs 14ZU & 722.5 & 1000.0 & 72.3 & \\
+Cuves 13AB & 650.2 & 965.3 & 67.4 & \\
+Cuves 13E & 641.7 & 965.3 & 66.5 & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Le stockage d'acide 29 est saturé sur trois lignes.} C'est ce qui explique
+pourquoi 13F ne transfère « que » \SI{1362}{\tonne} alors qu'elle est excédentaire : il n'y
+a plus de place ailleurs. Le système est contraint par le \emph{stockage}, non par la
+production.
+
+\paragraph{Les décanteurs ne sont pas un goulot dans ce scénario} (\SI{72}{\percent} au
+plus). Ce constat est contre-intuitif au regard du chapitre~\ref{chap:procede}, qui les
+présente comme la contrainte structurante --- et c'est un enseignement en soi : la contrainte
+\emph{conceptuellement} la plus subtile n'est pas nécessairement la plus \emph{limitante} un
+jour donné.
+
+\begin{alerte}[title={Ne pas généraliser}]
+Ce diagnostic vaut pour \emph{ce} scénario. Avec une demande d'acide clarifié plus forte, ou
+un $\alpha$ plus élevé, les décanteurs redeviendraient contraignants. C'est précisément
+l'intérêt de disposer d'un modèle : rejouer le calcul chaque jour plutôt que raisonner sur
+des intuitions figées.
+\end{alerte}
+
+\section{Validation}
+
+\subsection{Le validateur indépendant}
+
+\num{86} contrôles, tous réussis : bilans matière fermés sur les dix-neuf n\oe uds du
+système, conservation globale du \PdeuxOcinq{}, demandes exactement servies, capacités
+respectées, niveaux de décadmiation discrets, rendements exacts, stocks positifs.
+
+\subsection{La tolérance de concentration n'est pas utilisée}
+
+L'encadrant a accordé une tolérance sur la charge de concentration tout en la qualifiant de
+« normalement rigide ». L'écart constaté est nul sur les cinq lignes : la bande existe en
+dernier recours, la pénalité du niveau 2 maintient le modèle à l'égalité stricte. Le
+comportement obtenu est exactement conforme à la consigne.
+
+\subsection{La contrainte de qualité d'IR11 est nécessaire}
+
+La contre-épreuve automatisée présentée au chapitre~\ref{chap:implementation} confirme
+qu'avec $\alpha = 0$, la production de DEC\_CL tombe à zéro. La décision de modélisation est
+donc empiriquement justifiée, et non seulement argumentée.
+
+\section{Synthèse pour l'exploitation}
+
+\subsection{Ce qui fonctionne}
+
+Le modèle sert \SI{100}{\percent} de la demande en moins de \SI{0.1}{\second}, sa solution est
+physiquement valide, et le plan produit est sobre : une seule décadmiation, trois transferts,
+deux lignes clarifiantes. Rien d'inutile.
+
+\subsection{Ce qui ne va pas, et qui ne relève pas de l'optimisation}
+
+\begin{enumerate}
+  \item IR11 déborde de \SI{1016}{\tonne} par jour --- trop d'échelons en cocristallisation ;
+  \item le stock de 14EXT reste sous sa bande --- même cause ;
+  \item le stockage d'acide 29 est saturé sur trois lignes sur six.
+\end{enumerate}
+
+\subsection{Trois questions posées à l'encadrant}
+
+\begin{enumerate}
+  \item Peut-on réduire à un ou deux le nombre d'échelons de 14EXT en cocristallisation ?
+        C'est la seule action qui résorbe les deux violations, et elle ne coûte rien.
+  \item L'excédent de CoC a-t-il un débouché non modélisé --- vente d'acide marchand, export,
+        autre bac ? Si oui, le débordement d'IR11 est un artefact de modélisation qu'il
+        suffit de corriger ; sinon, c'est un problème d'exploitation réel que le modèle vient
+        de mettre au jour.
+  \item Quelle est la vraie valeur de $\alpha$ ? Si elle dépasse \num{0,22}, il faut habiliter
+        une deuxième ligne au DEC\_CL.
+\end{enumerate}
+
+\begin{encadre}[title={Le livrable véritable}]
+Le résultat le plus utile de cette étude n'est pas le plan quotidien, mais le
+\textbf{diagnostic} qui l'accompagne. Un modèle d'optimisation ne doit pas seulement dire
+quoi faire : il doit dire ce qui empêche de faire mieux.
+\end{encadre}

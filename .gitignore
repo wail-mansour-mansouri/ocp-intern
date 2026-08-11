@@ -1,0 +1,19 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+resultats/
+*.egg-info/
+
+# LaTeX
+rapport/*.aux
+rapport/*.log
+rapport/*.out
+rapport/*.toc
+rapport/*.lof
+rapport/*.lot
+rapport/*.fls
+rapport/*.fdb_latexmk
+rapport/*.bbl
+rapport/*.blg
+rapport/*.synctex.gz
+rapport/chapitres/*.aux
