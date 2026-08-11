@@ -184,6 +184,26 @@ def extraire(modele: ModeleOptimisation, solution: Solution) -> Resultat:
         if acide == C.ACIDE_54_NCL and k == "EMAPHOS"
     )
 
+    # ── Cocristallisation effectivement mise en service ─────────────────────
+    #
+    # En mode subi, c'est le paramètre calculé en prétraitement. En mode
+    # décidable (D-11), il faut relire les binaires d'activation : le modèle a
+    # pu éteindre une partie des échelons candidats.
+    if v.z:
+        pi_coc = {
+            ligne: sum(
+                params.production_echelon[e] * _v(solution, v.z[e].name)
+                for e in params.echelons_coc_candidats.get(ligne, ())
+            )
+            for ligne in C.LIGNES_54
+        }
+    else:
+        pi_coc = dict(params.production_54_coc)
+
+    coc_produit = {m: C.RENDEMENT_COCRISTALLISATION * q for m, q in pi_coc.items()}
+    boue_coc = {m: C.BOUE_COCRISTALLISATION * q for m, q in pi_coc.items()}
+    coc_total = sum(coc_produit.values())
+
     # ── Lignes d'acide 54 ───────────────────────────────────────────────────
     lignes_54: dict[str, ResultatLigne54] = {}
     for ligne in C.LIGNES_54:
@@ -196,9 +216,9 @@ def extraire(modele: ModeleOptimisation, solution: Solution) -> Resultat:
             ligne=ligne,
             production_planifiee=params.production_54[ligne],
             charge_reelle=x_std + x_dec,
-            ncl_produit=x_std - params.production_54_coc[ligne],
-            coc_entree=params.production_54_coc[ligne],
-            coc_produit=params.coc_produit[ligne],
+            ncl_produit=x_std - pi_coc[ligne],
+            coc_entree=pi_coc[ligne],
+            coc_produit=coc_produit[ligne],
             stock_initial_ncl=scenario.stock_54_ncl_initial[ligne],
             clarification_ncl=u_ncl,
             clarification_dec=x_dec,
@@ -231,7 +251,7 @@ def extraire(modele: ModeleOptimisation, solution: Solution) -> Resultat:
             stock_initial_dec=scenario.stock_29_dec_initial[ligne],
             transferts_entrants=sum(q for (o, d), q in transferts.items() if d == ligne),
             transferts_sortants=sum(q for (o, d), q in transferts.items() if o == ligne),
-            boue_cocristallisation=params.boue_coc[ligne54] if ligne54 else 0.0,
+            boue_cocristallisation=boue_coc[ligne54] if ligne54 else 0.0,
             boue_clarification=C.BOUE_CLARIFICATION * clarif_totale,
             retour_emaphos=C.RETOURS_EMAPHOS.get(ligne, 0.0) * livraison_emaphos_totale,
             vers_concentration_std=_v(solution, v.x_std[ligne].name) if ligne in v.x_std else 0.0,
@@ -269,7 +289,7 @@ def extraire(modele: ModeleOptimisation, solution: Solution) -> Resultat:
     ir11 = ResultatCentral(
         nom="IR11",
         stock_initial=scenario.stock_ir11_initial,
-        entrees={"CoC": params.coc_total, "DEC_CL": dec_cl_total},
+        entrees={"CoC": coc_total, "DEC_CL": dec_cl_total},
         livraisons={k: q for k, q in livraisons_ir11.items() if q > 1e-6},
         stock_final=_v(solution, v.s11_coc.name) + _v(solution, v.s11_deccl.name),
         capacite=units.bornes_stock_ir11()[1],

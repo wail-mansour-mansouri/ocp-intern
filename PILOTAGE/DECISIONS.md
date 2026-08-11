@@ -255,3 +255,59 @@ exactement le plan, on retrouve bien $N_m = \Pi^{ncl}_m - x^{dec}_\ell$, la form
 initiale. La nouvelle écriture la **généralise** sans la contredire.
 
 **Réversibilité.** Élevée : `tolerance_concentration = 0` restaure l'égalité stricte.
+
+---
+
+## D-11 — Mode optionnel : cocristallisation décidable
+
+**Contexte.** Le cahier des charges présente l'affectation des échelons à la
+cocristallisation comme une **configuration subie** : un échelon affecté traite tout ce
+qu'il produit, quelle que soit la demande. Le modèle a été construit fidèlement sur cette
+base (décision implicite depuis l'itération 1).
+
+L'analyse de sensibilité de l'itération 2 a montré que ce paramètre est **la cause unique**
+des deux violations structurelles du scénario de référence : IR11 déborde de 1 016 t/jour et
+le stock de 14EXT reste sous sa bande. Aucune décision d'exploitation ne peut les corriger.
+
+**Options.**
+1. Ne rien faire : rester fidèle au cahier des charges, signaler le problème.
+2. Remplacer le paramètre par une variable de décision.
+3. Ajouter un **mode optionnel**, désactivé par défaut.
+
+**Décision.** Option 3 : drapeau `cocristallisation_decidable`, **faux par défaut**.
+Quand il est activé, la liste `echelons_cocristallisation` change de sens — elle désigne
+alors les échelons *physiquement raccordés* aux unités, et le modèle choisit lesquels
+mettre en service, via une binaire $z_e$ par échelon candidat.
+
+**Justification.** Le comportement par défaut doit rester **conforme aux spécifications**
+reçues : ce n'est pas au logiciel de décider unilatéralement qu'une règle métier n'en est
+pas une. Mais refuser d'explorer la question aurait été tout aussi discutable, puisque
+l'analyse désigne ce paramètre comme le seul levier utile. Un mode optionnel réconcilie les
+deux : le modèle reste fidèle, et l'étude peut chiffrer ce que coûte la contrainte.
+
+**Linéarité préservée.** Le passage du paramètre à la variable garde le modèle linéaire :
+
+$$\Pi^{coc}_m = \sum_{e} \kappa_e\, z_e, \qquad G_m = \eta^{coc}\,\Pi^{coc}_m$$
+
+Toutes les contraintes qui utilisaient $\Pi^{coc}_m$ (C4b, C6, C7, C13, C15) restent affines.
+La contrainte C5 a dû être généralisée : la capacité des échelons non cocristallisants vaut
+désormais $\Pi_m - \Pi^{coc}_m$ au lieu du paramètre $\Pi^{ncl}_m$.
+
+**Résultat mesuré.**
+
+| Mode | CoC produit | Dépassement IR11 | Niveau 2 | Niveau 3 |
+|---|---:|---:|---:|---:|
+| subi (défaut) | 2 431,3 | 1 016,0 | 1 268,3 | 3 111,9 |
+| **décidable** | **472,0** | **0,0** | **0,0** | **2 125,2** |
+
+Le mode décidable **résorbe intégralement** les deux violations, tout en servant 100 % de la
+demande et en réduisant le coût opératoire. Coût : 8 variables binaires supplémentaires.
+
+**Limite à signaler.** Le modèle étant mono-période, il n'a aucune raison de reconstituer le
+stock d'IR11 : celui-ci étant initialement rempli à 86,5 %, l'optimiseur réduit fortement la
+cocristallisation pour le ramener vers le milieu de sa bande. Sur un horizon multi-période,
+l'arbitrage serait différent. **Ce résultat chiffre un potentiel, il ne constitue pas une
+consigne d'exploitation.**
+
+**Réversibilité.** Totale : le drapeau est faux par défaut, et un test vérifie qu'aucune
+variable binaire de cocristallisation n'est alors créée.

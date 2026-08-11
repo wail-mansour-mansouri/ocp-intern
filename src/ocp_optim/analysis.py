@@ -32,6 +32,7 @@ __all__ = [
     "identifier_goulots",
     "balayer_parametre",
     "balayer_echelons_cocristallisation",
+    "comparer_modes_cocristallisation",
     "resoudre_scenario",
 ]
 
@@ -265,4 +266,31 @@ def balayer_echelons_cocristallisation(
             _evaluer(variante, f"{nombre}/{len(echelons_initiaux)}", profils)
         )
 
+    return points
+
+
+def comparer_modes_cocristallisation(
+    scenario: Scenario, profils: ProfilsQualite | None = None
+) -> list[PointSensibilite]:
+    """Compare le mode subi (cahier des charges) au mode décidable (D-11).
+
+    Le mode subi traite l'affectation des échelons à la cocristallisation comme
+    un paramètre ; le mode décidable en fait une variable binaire par échelon.
+
+    C'est la comparaison la plus instructive du modèle : elle chiffre ce que
+    coûte une contrainte de configuration que personne n'avait identifiée comme
+    telle.
+
+    Args:
+        scenario: scénario de base.
+        profils: catalogue des recettes.
+
+    Returns:
+        Deux points, dans l'ordre ``subi`` puis ``décidable``.
+    """
+    points: list[PointSensibilite] = []
+    for decidable, libelle in ((False, "subi"), (True, "décidable")):
+        variante = dataclasses.replace(scenario, cocristallisation_decidable=decidable)
+        variante.valider()
+        points.append(_evaluer(variante, libelle, profils))
     return points

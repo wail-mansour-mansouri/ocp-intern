@@ -49,6 +49,8 @@ class Variables:
     """Ensemble des variables de décision du modèle.
 
     Attributes:
+        z: ``z[echelon]`` — binaire, mise en service d'un échelon en
+            cocristallisation. Créé uniquement en mode décidable (D-11).
         w: ``w[(ligne, niveau)]`` — binaire, choix du niveau de décadmiation.
         d: ``d[ligne]`` — expression affine donnant la quantité décadmiée.
         x_std: ``x_std[ligne29]`` — acide 29 standard envoyé en concentration.
@@ -68,6 +70,7 @@ class Variables:
         e_plus, e_minus: écart à la charge de concentration planifiée.
     """
 
+    z: dict[str, pulp.LpVariable] = field(default_factory=dict)
     w: dict[tuple[str, float], pulp.LpVariable] = field(default_factory=dict)
     d: dict[str, pulp.LpAffineExpression] = field(default_factory=dict)
     x_std: dict[str, pulp.LpVariable] = field(default_factory=dict)
@@ -110,6 +113,15 @@ def creer_variables(scenario: Scenario, params: ParametresDerives) -> Variables:
         Le conteneur `Variables` peuplé.
     """
     v = Variables()
+
+    # ── Cocristallisation décidable (D-11), si le scénario l'active ──────────
+    #
+    # En mode par défaut, aucune variable n'est créée : la cocristallisation
+    # reste un paramètre, conformément au cahier des charges.
+    if scenario.cocristallisation_decidable:
+        for echelons in params.echelons_coc_candidats.values():
+            for echelon in echelons:
+                v.z[echelon] = pulp.LpVariable(f"z_coc_{echelon}", cat=pulp.LpBinary)
 
     # ── Décadmiation (C2) : encodage « one-hot » d'un choix discret ──────────
     for ligne in scenario.decadmiation_equipee:

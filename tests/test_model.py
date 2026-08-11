@@ -183,3 +183,75 @@ def test_hierarchie_respectee(scenario, profils):
 
     solution_lexico = resoudre(construire_modele(scenario, params))
     assert f2_si_on_ignore_le_niveau_2 >= solution_lexico.f2 - 1e-6
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Mode « cocristallisation décidable » (décision D-11)
+# ─────────────────────────────────────────────────────────────────────────────
+
+def _resoudre_decidable(scenario, profils):
+    """Résout le scénario en rendant l'affectation des échelons CoC décidable."""
+    variante = dataclasses.replace(scenario, cocristallisation_decidable=True)
+    params = calculer_parametres(variante, profils)
+    modele = construire_modele(variante, params)
+    return variante, modele, extraire(modele, resoudre(modele))
+
+
+def test_mode_subi_ne_cree_aucune_binaire_de_cocristallisation(modele):
+    """Par défaut, la cocristallisation reste un paramètre : aucune variable."""
+    assert modele.variables.z == {}
+
+
+def test_mode_decidable_cree_une_binaire_par_echelon_candidat(scenario, profils):
+    """Une binaire est créée pour chaque échelon raccordé à une unité de CoC."""
+    _, modele, _ = _resoudre_decidable(scenario, profils)
+    candidats = {
+        e for echelons in scenario.echelons_cocristallisation.values() for e in echelons
+    }
+    assert set(modele.variables.z) == candidats
+    assert len(candidats) == 8   # 4 sur 14EXT + 4 sur 14AB
+
+
+def test_mode_decidable_resorbe_les_violations(scenario, profils, resultat):
+    """Laisser le modèle choisir fait disparaître les deux violations structurelles.
+
+    C'est le résultat le plus actionnable de l'étude : les violations ne viennent
+    d'aucune mauvaise décision d'exploitation, mais d'un paramètre de configuration.
+    """
+    _, _, decidable = _resoudre_decidable(scenario, profils)
+
+    assert resultat.f2 > 1000.0, "le mode subi doit bien présenter des violations"
+    assert decidable.f2 == pytest.approx(0.0, abs=1e-3)
+    assert decidable.f1 == pytest.approx(0.0, abs=1e-4), "la demande reste servie"
+
+
+def test_mode_decidable_ne_degrade_pas_le_cout_operatoire(scenario, profils, resultat):
+    """Le mode décidable élargit le domaine réalisable : il ne peut que faire mieux."""
+    _, _, decidable = _resoudre_decidable(scenario, profils)
+    assert decidable.f3 <= resultat.f3 + 1e-6
+
+
+def test_mode_decidable_conserve_les_rendements(scenario, profils):
+    """Le CoC produit reste égal à 80 % de ce qui entre en cocristallisation."""
+    _, _, decidable = _resoudre_decidable(scenario, profils)
+    for r in decidable.lignes_54.values():
+        assert r.coc_produit == pytest.approx(
+            C.RENDEMENT_COCRISTALLISATION * r.coc_entree, abs=1e-6
+        )
+
+
+def test_mode_decidable_reste_dans_les_echelons_candidats(scenario, profils):
+    """Aucune ligne non équipée ne peut se mettre à cocristalliser."""
+    _, _, decidable = _resoudre_decidable(scenario, profils)
+    for nom, r in decidable.lignes_54.items():
+        if nom not in C.LIGNES_COC_POSSIBLE:
+            assert r.coc_entree == pytest.approx(0.0, abs=1e-6)
+
+
+def test_mode_decidable_valide_physiquement(scenario, profils):
+    """La solution du mode décidable passe le validateur indépendant."""
+    from ocp_optim.validation import valider
+
+    variante, _, decidable = _resoudre_decidable(scenario, profils)
+    rapport = valider(decidable, variante)
+    assert rapport.conforme, rapport.resume()

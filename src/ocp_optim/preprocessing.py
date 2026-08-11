@@ -33,6 +33,10 @@ class ParametresDerives:
         coc_produit: G_m — CoC envoyé vers IR11 (systématique).
         boue_coc: B_coc_m — boue de cocristallisation retournant au stock d'acide 29.
         besoins: R[k][a] — besoin consolidé du consommateur k en acide a.
+        echelons_coc_candidats: échelons raccordés aux unités de cocristallisation,
+            par ligne. En mode subi, ils sont tous en service et les grandeurs
+            ci-dessus sont exactes ; en mode décidable, elles constituent la
+            borne haute que le modèle peut choisir de ne pas atteindre.
     """
 
     production_echelon: dict[str, float]
@@ -42,6 +46,7 @@ class ParametresDerives:
     coc_produit: dict[str, float]
     boue_coc: dict[str, float]
     besoins: dict[str, dict[str, float]]
+    echelons_coc_candidats: dict[str, tuple[str, ...]]
 
     # ── Agrégats de commodité ───────────────────────────────────────────────
 
@@ -167,4 +172,8 @@ def calculer_parametres(
         coc_produit=coc_produit,
         boue_coc=boue_coc,
         besoins=_besoins_consommateurs(scenario, profils),
+        echelons_coc_candidats={
+            ligne: tuple(scenario.echelons_cocristallisation.get(ligne, ()))
+            for ligne in C.LIGNES_54
+        },
     )

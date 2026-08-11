@@ -192,3 +192,46 @@ la page de garde (noms, dates) et les remerciements, dont seule une trame est fo
 ### État du projet
 Les sept phases sont terminées. La suite dépend des réponses de l'encadrant et de la
 confrontation des résultats au réalisé de l'usine.
+
+---
+
+## Itération 4 — 2026-08-10 — Cocristallisation décidable
+
+### Objectif
+Mettre en œuvre la perspective identifiée comme la plus rentable en conclusion du rapport :
+faire de l'affectation des échelons à la cocristallisation une variable de décision.
+
+### Travail réalisé
+Ajout d'un **mode optionnel** (décision **D-11**), désactivé par défaut afin que le
+comportement standard reste conforme au cahier des charges. Une binaire par échelon
+candidat ; toutes les contraintes concernées restent linéaires.
+
+Points d'implémentation :
+- quatre fonctions d'aide (`_pi_coc`, `_coc_produit`, `_boue_coc`, `_coc_total`) qui
+  renvoient soit le paramètre, soit l'expression affine, selon le mode. Les contraintes ne
+  connaissent pas le mode ;
+- la contrainte C5 a dû être généralisée : la capacité des échelons non cocristallisants
+  devient $\Pi_m - \Pi^{coc}_m$ au lieu du paramètre $\Pi^{ncl}_m$ ;
+- l'extraction des résultats relit les binaires pour recalculer le CoC effectif.
+
+Sept tests ajoutés, dont un qui vérifie qu'en mode par défaut **aucune** binaire de
+cocristallisation n'est créée, et un qui confirme que la solution du mode décidable passe
+le validateur indépendant. **145 tests au total.**
+
+### Résultat
+
+| Mode | CoC produit | Dépassement IR11 | Niveau 2 | Niveau 3 |
+|---|---:|---:|---:|---:|
+| subi | 2 431,3 | 1 016,0 | 1 268,3 | 3 111,9 |
+| décidable | 472,0 | 0,0 | 0,0 | 2 125,2 |
+
+Le mode décidable résorbe **intégralement** les deux violations structurelles, sert 100 % de
+la demande, et réduit le coût opératoire. Il éteint tous les échelons CoC de 14EXT et n'en
+conserve qu'un sur 14AB.
+
+### Réserve importante
+Le modèle étant mono-période, il n'a aucune raison de reconstituer IR11. Celui-ci étant
+rempli à 86,5 % au départ, l'optimiseur réduit fortement la cocristallisation pour le
+ramener vers le milieu de sa bande. Sur un horizon multi-période, l'arbitrage différerait.
+**Ce résultat chiffre un potentiel, ce n'est pas une consigne d'exploitation** — la nuance
+est écrite dans D-11 et doit être portée telle quelle à l'encadrant.

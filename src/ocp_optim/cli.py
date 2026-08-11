@@ -5,11 +5,13 @@ Exemples :
     python -m ocp_optim                       # résout le scénario de référence
     python -m ocp_optim --sortie resultats/   # écrit les rapports Excel et JSON
     python -m ocp_optim --sensibilite         # ajoute les analyses de sensibilité
+    python -m ocp_optim --coc-decidable       # laisse le modèle choisir les échelons CoC
 """
 
 from __future__ import annotations
 
 import argparse
+import dataclasses
 import sys
 from pathlib import Path
 
@@ -18,6 +20,7 @@ from . import units
 from .analysis import (
     balayer_echelons_cocristallisation,
     balayer_parametre,
+    comparer_modes_cocristallisation,
     identifier_goulots,
 )
 from .preprocessing import ParametresDerives, calculer_parametres
@@ -43,13 +46,21 @@ def _section(titre: str) -> None:
 
 def _afficher_contexte(scenario: Scenario, params: ParametresDerives) -> None:
     _section("SCÉNARIO ET PARAMÈTRES DÉRIVÉS")
+    mode_coc = "décidable (D-11)" if scenario.cocristallisation_decidable else "subi (cahier des charges)"
     print(f"  Scénario                    : {scenario.nom}")
+    print(f"  Cocristallisation           : {mode_coc}")
     print(f"  Unité                       : tonne de P2O5 par jour")
     print()
     print(f"  Production d'acide 29       : {sum(scenario.production_29.values()):9.1f}")
     print(f"  Production d'acide 54       : {params.production_54_totale:9.1f}")
-    print(f"  dont cocristallisée         : {sum(params.production_54_coc.values()):9.1f}")
-    print(f"  CoC produit (systématique)  : {params.coc_total:9.1f}")
+    if scenario.cocristallisation_decidable:
+        # En mode décidable, ces valeurs sont des bornes hautes : le modèle
+        # choisit combien d'échelons candidats mettre effectivement en service.
+        print(f"  Échelons CoC candidats      : {sum(params.production_54_coc.values()):9.1f}  (borne haute)")
+        print(f"  CoC maximal possible        : {params.coc_total:9.1f}  (borne haute)")
+    else:
+        print(f"  dont cocristallisée         : {sum(params.production_54_coc.values()):9.1f}")
+        print(f"  CoC produit (systématique)  : {params.coc_total:9.1f}")
     print(f"  Demande totale              : {params.demande_totale:9.1f}")
     print()
     print("  Besoins par type d'acide :")
@@ -176,6 +187,14 @@ def _afficher_sensibilite(scenario: Scenario, profils: ProfilsQualite) -> None:
     print("    sa capacité d'échelons non cocristallisants ne suffit plus.")
 
     print()
+    print("  Mode d'affectation de la cocristallisation (décision D-11)")
+    print(f"    {'Mode':<12}{'CoC':>10}{'IR11':>10}{'Dépass.':>10}{'f2':>10}{'f3':>10}")
+    for point in comparer_modes_cocristallisation(scenario, profils):
+        print(f"    {str(point.valeur):<12}{point.coc_total:>10.1f}"
+              f"{point.stock_ir11:>10.1f}{point.depassement_ir11:>10.1f}"
+              f"{point.f2:>10.1f}{point.f3:>10.1f}")
+
+    print()
     print("  Transfert interzone maximal (paramètre tau_max, hypothèse H7)")
     print(f"    {'tau_max':<10}{'Transferts':>12}{'f2':>10}{'f3':>10}")
     for point in balayer_parametre(
@@ -215,10 +234,17 @@ def main(argv: list[str] | None = None) -> int:
         "--sensibilite", action="store_true",
         help="exécute les analyses de sensibilité (plus long)",
     )
+    analyseur.add_argument(
+        "--coc-decidable", action="store_true",
+        help="rend l'affectation des échelons à la cocristallisation décidable "
+             "par le modèle, au lieu de la subir (mode exploratoire, D-11)",
+    )
     arguments = analyseur.parse_args(argv)
 
     profils = ProfilsQualite.depuis_json(arguments.profils)
     scenario = Scenario.depuis_json(arguments.scenario)
+    if arguments.coc_decidable:
+        scenario = dataclasses.replace(scenario, cocristallisation_decidable=True)
     params = calculer_parametres(scenario, profils)
 
     _afficher_contexte(scenario, params)

@@ -67,6 +67,17 @@ class Scenario:
     alpha_dec_cl: float = C.ALPHA_DEC_CL_DEFAUT
     tolerance_concentration: float = C.TOLERANCE_CONCENTRATION_DEFAUT
 
+    #: Mode d'affectation des échelons à la cocristallisation.
+    #:
+    #: `False` (défaut) — conforme au cahier des charges : les échelons déclarés
+    #: dans `echelons_cocristallisation` traitent **tout** ce qu'ils produisent,
+    #: quelle que soit la demande. C'est un paramètre subi.
+    #:
+    #: `True` — mode exploratoire : la liste devient l'ensemble des échelons
+    #: *physiquement raccordés* aux unités de cocristallisation, et le modèle
+    #: choisit lesquels mettre en service. Voir décision D-11.
+    cocristallisation_decidable: bool = False
+
     # ── Traçabilité ─────────────────────────────────────────────────────────
     hauteurs_initiales: dict = field(default_factory=dict, repr=False)
 
@@ -130,6 +141,9 @@ class Scenario:
             alpha_dec_cl=float(params.get("alpha_dec_cl", C.ALPHA_DEC_CL_DEFAUT)),
             tolerance_concentration=float(
                 params.get("tolerance_concentration", C.TOLERANCE_CONCENTRATION_DEFAUT)
+            ),
+            cocristallisation_decidable=bool(
+                params.get("cocristallisation_decidable", False)
             ),
             hauteurs_initiales=h,
         )

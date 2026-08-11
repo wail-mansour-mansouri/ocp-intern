@@ -22,6 +22,42 @@ __all__ = ["ajouter_toutes_les_contraintes"]
 # Expressions réutilisables
 # ─────────────────────────────────────────────────────────────────────────────
 
+def _pi_coc(v: Variables, params: ParametresDerives, ligne54: str):
+    """Production dirigée vers la cocristallisation sur la ligne (Pi_coc_m).
+
+    Deux régimes selon le mode retenu :
+
+    - **mode subi** (défaut, conforme au cahier des charges) : c'est un
+      paramètre, calculé en prétraitement ;
+    - **mode décidable** (D-11) : c'est une expression affine des binaires
+      d'activation, ``sum(kappa_e * z_e)``. Toutes les contraintes qui
+      l'utilisent restent linéaires.
+    """
+    if not v.z:
+        return params.production_54_coc[ligne54]
+    return pulp.lpSum(
+        params.production_echelon[e] * v.z[e]
+        for e in params.echelons_coc_candidats.get(ligne54, ())
+    )
+
+
+def _coc_produit(v: Variables, params: ParametresDerives, ligne54: str):
+    """CoC envoyé vers IR11 par la ligne (G_m)."""
+    return C.RENDEMENT_COCRISTALLISATION * _pi_coc(v, params, ligne54)
+
+
+def _boue_coc(v: Variables, params: ParametresDerives, ligne54: str):
+    """Boue de cocristallisation retournant au stock d'acide 29 (B_coc_m)."""
+    return C.BOUE_COCRISTALLISATION * _pi_coc(v, params, ligne54)
+
+
+def _coc_total(v: Variables, params: ParametresDerives):
+    """CoC total produit, toutes lignes confondues."""
+    if not v.z:
+        return params.coc_total
+    return pulp.lpSum(_coc_produit(v, params, m) for m in C.LIGNES_54)
+
+
 def _livraison_emaphos(v: Variables) -> pulp.LpAffineExpression:
     """Total d'acide 54 NCL livré à EMAPHOS, toutes lignes confondues."""
     return pulp.lpSum(
@@ -39,7 +75,7 @@ def _ncl_produit(v: Variables, params: ParametresDerives, ligne54: str) -> pulp.
       - le reste, soit ``x_std - Pi_coc``, produit du NCL ordinaire.
     """
     ligne29 = C.SIGMA_INV[ligne54]
-    return v.x_std[ligne29] - params.production_54_coc[ligne54]
+    return v.x_std[ligne29] - _pi_coc(v, params, ligne54)
 
 
 def _clarification_dec(v: Variables, ligne54: str) -> pulp.LpAffineExpression:
@@ -114,7 +150,7 @@ def c04_charge_concentration(
         # Les échelons cocristallisants tournent au plan : ils doivent être
         # alimentés en acide standard à hauteur de leur production planifiée.
         prob += (
-            v.x_std[ligne] >= params.production_54_coc[ligne54],
+            v.x_std[ligne] >= _pi_coc(v, params, ligne54),
             f"C04b_alim_coc_{ligne}",
         )
 
@@ -131,8 +167,10 @@ def c05_limite_acide_dec_concentration(
     for ligne in C.LIGNES_29_AVEC_54:
         ligne54 = C.SIGMA[ligne]
         if ligne54 in scenario.dec_cl_active:
+            # En mode décidable, éteindre un échelon cocristallisant libère de la
+            # capacité pour l'acide décadmié : la borne suit donc Pi_coc.
             prob += (
-                v.x_dec[ligne] <= params.production_54_ncl[ligne54],
+                v.x_dec[ligne] <= params.production_54[ligne54] - _pi_coc(v, params, ligne54),
                 f"C05_dec_sur_echelons_ncl_{ligne}",
             )
         else:
@@ -165,7 +203,7 @@ def c07_bilan_acide_29_std(
             v.t[(ligne, dest)] for (origine, dest) in v.t if origine == ligne
         )
 
-        boue_coc = params.boue_coc[ligne54] if ligne54 else 0.0
+        boue_coc = _boue_coc(v, params, ligne54) if ligne54 else 0.0
         boue_clarif = (
             C.BOUE_CLARIFICATION * _entree_clarification_totale(v, ligne54)
             if ligne54
@@ -316,7 +354,7 @@ def c13_bilan_ir11(prob, v: Variables, scenario: Scenario, params: ParametresDer
     prob += (
         v.s11_coc
         == scenario.stock_ir11_initial          # hypothèse H4 : initial = CoC
-        + params.coc_total
+        + _coc_total(v, params)
         - pulp.lpSum(v.y_coc.values()),
         "C13_bilan_IR11_coc",
     )
@@ -349,7 +387,7 @@ def c15_qualite_ir11(prob, v: Variables, scenario: Scenario, params: ParametresD
         _clarification_dec(v, ligne) for ligne in C.LIGNES_54
     )
     prob += (
-        (1.0 - alpha) * entree_deccl >= alpha * params.coc_total,
+        (1.0 - alpha) * entree_deccl >= alpha * _coc_total(v, params),
         "C15_qualite_IR11",
     )
 
