@@ -255,3 +255,24 @@ def test_mode_decidable_valide_physiquement(scenario, profils):
     variante, _, decidable = _resoudre_decidable(scenario, profils)
     rapport = valider(decidable, variante)
     assert rapport.conforme, rapport.resume()
+
+
+def test_la_resolution_ne_mute_pas_le_modele(scenario, profils):
+    """Résoudre laisse le modèle dans l'état où il était.
+
+    Les contraintes de figeage lexicographique sont temporaires. Si elles
+    restaient, une seconde résolution du même objet accumulerait les contraintes
+    et fausserait le décompte publié dans la documentation.
+    """
+    params = calculer_parametres(scenario, profils)
+    modele = construire_modele(scenario, params)
+    avant = modele.statistiques()["contraintes"]
+
+    premiere = resoudre(modele)
+    assert modele.statistiques()["contraintes"] == avant
+
+    seconde = resoudre(modele)
+    assert modele.statistiques()["contraintes"] == avant
+    assert seconde.f1 == pytest.approx(premiere.f1, abs=1e-6)
+    assert seconde.f2 == pytest.approx(premiere.f2, abs=1e-6)
+    assert seconde.f3 == pytest.approx(premiere.f3, abs=1e-6)

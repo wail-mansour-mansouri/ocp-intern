@@ -6,6 +6,10 @@ puis on optimise le niveau 2 sous cette contrainte, et ainsi de suite.
 Les tolérances ``epsilon`` absorbent les erreurs d'arrondi du solveur. Sans elles,
 figer ``f1 = f1*`` à l'exact peut rendre l'étape suivante numériquement infaisable,
 le solveur ne retrouvant pas au bit près la valeur qu'il vient d'annoncer.
+
+Les contraintes de figeage sont **retirées en sortie**, y compris en cas d'erreur :
+la résolution rend le modèle dans l'état où elle l'a reçu, ce qui la rend
+idempotente et permet de résoudre plusieurs fois le même objet.
 """
 
 from __future__ import annotations
@@ -91,39 +95,52 @@ def resoudre(
     niveaux = (("f1", modele.f1), ("f2", modele.f2), ("f3", modele.f3))
     optima: dict[str, float] = {}
 
-    for rang, (nom, expression) in enumerate(niveaux, start=1):
-        prob.setObjective(expression)
-        statut_code = prob.solve(solveur)
-        statut = pulp.LpStatus[statut_code]
+    # Noms des contraintes de figeage, à retirer en sortie : la résolution ne
+    # doit pas laisser le modèle dans un état différent de celui qu'elle a reçu.
+    # Sans ce nettoyage, une seconde résolution du même objet accumulerait les
+    # contraintes et le décompte publié dans la documentation deviendrait faux.
+    contraintes_temporaires: list[str] = []
 
-        if statut != "Optimal":
-            raise SolutionNonOptimale(
-                f"Passe {rang} ({nom}) : statut « {statut} ». "
-                "Le modèle est infaisable ou non borné à ce niveau."
-            )
+    try:
+        for rang, (nom, expression) in enumerate(niveaux, start=1):
+            prob.setObjective(expression)
+            statut_code = prob.solve(solveur)
+            statut = pulp.LpStatus[statut_code]
 
-        optimum = float(pulp.value(expression))
-        optima[nom] = optimum
+            if statut != "Optimal":
+                raise SolutionNonOptimale(
+                    f"Passe {rang} ({nom}) : statut « {statut} ». "
+                    "Le modèle est infaisable ou non borné à ce niveau."
+                )
 
-        message = f"Passe {rang} — {nom} = {optimum:.6f} ({statut})"
-        journal.append(message)
-        if bavard:
-            print(message)
+            optimum = float(pulp.value(expression))
+            optima[nom] = optimum
 
-        # Fige ce niveau pour les passes suivantes, sauf après la dernière.
-        if rang < len(niveaux):
-            prob += (
-                expression <= optimum + _tolerance(optimum),
-                f"LEXICO_fige_{nom}",
-            )
+            message = f"Passe {rang} — {nom} = {optimum:.6f} ({statut})"
+            journal.append(message)
+            if bavard:
+                print(message)
+
+            # Fige ce niveau pour les passes suivantes, sauf après la dernière.
+            if rang < len(niveaux):
+                etiquette = f"LEXICO_fige_{nom}"
+                prob += (expression <= optimum + _tolerance(optimum), etiquette)
+                contraintes_temporaires.append(etiquette)
+
+        valeurs = {
+            v.name: (v.value() if v.value() is not None else 0.0)
+            for v in prob.variables()
+        }
+    finally:
+        for etiquette in contraintes_temporaires:
+            prob.constraints.pop(etiquette, None)
 
     return Solution(
         statut="Optimal",
         f1=optima["f1"],
         f2=optima["f2"],
         f3=optima["f3"],
-        valeurs={v.name: (v.value() if v.value() is not None else 0.0)
-                 for v in prob.variables()},
+        valeurs=valeurs,
         duree_s=time.perf_counter() - debut,
         journal=journal,
     )

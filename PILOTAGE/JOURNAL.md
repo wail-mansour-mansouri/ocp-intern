@@ -99,7 +99,7 @@ coefficients dispersés dans le texte, avec la source de chacun.
 **2. Modèle MILP** — 170 variables dont 29 binaires, 138 contraintes. Une fonction par
 famille de contraintes, nommée d'après sa référence du document `05`.
 
-**3. Résolution lexicographique** — 3 passes, statut **Optimal** en 0,06 s.
+**3. Résolution lexicographique** — 3 passes, statut **Optimal** en moins de 0,1 s.
 Deux difficultés numériques rencontrées et résolues :
 - figer un niveau à l'exact rend la passe suivante infaisable (tolérance relative 1e-6) ;
 - PuLP normalise la catégorie « Binary » en « Integer » borné à [0, 1].
@@ -110,7 +110,7 @@ l'extraction des résultats, les livraisons de CoC et de DEC_CL vers un même co
 s'écrasaient au lieu de se cumuler, faussant le bilan d'IR11 de 25,7 t. Un contrôle qui
 aurait relu les contraintes du modèle n'aurait rien vu.
 
-**5. Tests** — 138 tests en 1,2 s. Trois familles remarquables : ceux qui **verrouillent
+**5. Tests** — 162 tests en 1,2 s. Trois familles remarquables : ceux qui **verrouillent
 une anomalie** du dossier, ceux qui **prouvent par contre-épreuve** qu'une contrainte sert
 à quelque chose, et ceux qui **corrompent délibérément** la solution pour vérifier que le
 validateur les rejette.
@@ -121,7 +121,7 @@ validateur les rejette.
 
 ### Résultats
 
-**Le modèle sert 100 % de la demande** en 0,06 s, avec un plan sobre : une seule
+**Le modèle sert 100 % de la demande** en moins de 0,1 s, avec un plan sobre : une seule
 décadmiation (750 t sur 13XY), trois transferts, deux lignes clarifiantes.
 
 **Mais deux violations structurelles subsistent**, toutes deux dues à la même cause — le
@@ -216,7 +216,7 @@ Points d'implémentation :
 
 Sept tests ajoutés, dont un qui vérifie qu'en mode par défaut **aucune** binaire de
 cocristallisation n'est créée, et un qui confirme que la solution du mode décidable passe
-le validateur indépendant. **145 tests au total.**
+le validateur indépendant.
 
 ### Résultat
 
@@ -235,3 +235,42 @@ rempli à 86,5 % au départ, l'optimiseur réduit fortement la cocristallisation
 ramener vers le milieu de sa bande. Sur un horizon multi-période, l'arbitrage différerait.
 **Ce résultat chiffre un potentiel, ce n'est pas une consigne d'exploitation** — la nuance
 est écrite dans D-11 et doit être portée telle quelle à l'encadrant.
+
+
+### Suite de l'itération 4 — finalisation et revérification
+
+**Audit numérique de toute la documentation.** Extraction par script de toutes les valeurs
+de référence réelles, puis confrontation avec ce qui est écrit dans les dix documents et le
+rapport. Deux catégories d'écarts rectifiées :
+- la production de CoC : **2 431,3** et non 2 431,4 — l'erreur venait d'avoir multiplié une
+  valeur déjà arrondie ($0{,}80 \times 3\,039{,}2$) au lieu de la valeur exacte ;
+- le temps de résolution : « 0,06 s » était une mesure ponctuelle. Sur sept exécutions, la
+  médiane est de 0,065 s et le maximum de 0,084 s. Remplacé par **« moins de 0,1 s »**,
+  formulation robuste et vérifiable par un test.
+
+**Nouveau fichier `test_valeurs_de_reference.py`.** Il ne teste pas un comportement du code :
+il **garantit que les chiffres publiés restent vrais**. Chaque assertion porte en commentaire
+l'endroit où la valeur apparaît. Motivation : une documentation fausse est pire qu'une
+documentation absente, car on lui fait confiance.
+
+**Un défaut trouvé par ce filet.** Le tout premier test — celui qui vérifie la taille du
+modèle — a échoué : 140 contraintes au lieu de 138. Cause : `resoudre()` laissait dans le
+modèle ses deux contraintes de figeage lexicographique. Conséquences réelles : l'objet
+devenait non réutilisable, et une seconde résolution aurait accumulé les contraintes.
+Corrigé par un bloc `finally` qui les retire, y compris en cas d'erreur. Un test de
+non-régression vérifie désormais que résoudre deux fois donne le même résultat.
+
+> C'est le deuxième défaut de cette nature découvert dans le projet, après le bug
+> d'agrégation des livraisons d'IR11. Dans les deux cas, il a été trouvé par un contrôle
+> **écrit dans une autre logique** que celle du code contrôlé.
+
+**Intégration de D-11** dans le rapport (chapitres 6, 7, 8, annexes, résumé) et dans
+`docs-helper` (05, 08, 09), avec la réserve mono-période systématiquement accolée au chiffre.
+
+**Revérification de bout en bout :** 162 tests, ligne de commande dans les trois modes,
+classeur Excel à 5 feuilles relu, export JSON relu, rapport recompilé
+(**83 pages, 0 débordement, 0 référence indéfinie**).
+
+### État final
+Projet complet. Onze décisions consignées, 162 tests, 86 contrôles de validation
+indépendants, rapport de 83 pages.

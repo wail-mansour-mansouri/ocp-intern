@@ -12,7 +12,7 @@
 | Indicateur | Valeur |
 |---|---|
 | Statut de résolution | **Optimal** |
-| Temps de résolution | 0,06 s (trois passes) |
+| Temps de résolution | moins de 0,1 s (trois passes) |
 | Taille du problème | 170 variables (29 binaires), 138 contraintes |
 | **Demande satisfaite** | **100 %** — aucun manque |
 | Validation indépendante | **86 contrôles réussis sur 86** |
@@ -184,6 +184,42 @@ l'accentuer.
 
 ---
 
+## 4 bis. Lever la contrainte de configuration
+
+Les deux violations n'étant imputables ni à l'optimiseur ni à l'exploitation, mais au
+**statut** accordé à l'affectation des échelons — un paramètre subi —, un mode optionnel a
+été ajouté dans lequel cette affectation devient une variable de décision (**D-11**).
+Il est **désactivé par défaut**.
+
+```bash
+python -m ocp_optim --coc-decidable
+```
+
+| Mode | CoC produit | Dépassement IR11 | $f_2$ | $f_3$ |
+|---|---:|---:|---:|---:|
+| subi *(défaut)* | 2 431,3 | 1 016,0 | 1 268,3 | 3 111,9 |
+| **décidable** | **472,0** | **0,0** | **0,0** | **2 125,2** |
+
+> ### 🎯 Ce que cela démontre
+> Le mode décidable résorbe **intégralement** les deux violations, sert toujours 100 % de la
+> demande, **et** réduit le coût opératoire. Le modèle éteint tous les échelons
+> cocristallisants de 14EXT et n'en garde qu'un sur 14AB.
+>
+> Coût de la formulation : **8 variables binaires**.
+
+> ### ⚠️ La réserve à porter avec ce chiffre
+> Le modèle est **mono-période** : il n'a aucune raison de reconstituer IR11. Ce bac étant
+> rempli à 86,5 % au départ, l'optimiseur réduit fortement la cocristallisation simplement
+> pour le ramener vers le milieu de sa bande de sécurité — ce que récompense le niveau 3 de
+> l'objectif.
+>
+> Sur un horizon multi-période, l'arbitrage serait différent.
+>
+> **Ce résultat chiffre un potentiel, ce n'est pas une consigne d'exploitation.**
+> Ne présente pas ce tableau sans cette phrase.
+
+---
+
 ## 5. Goulots d'étranglement
 
 | Ressource | Utilisé | Capacité | Taux | |
@@ -244,7 +280,7 @@ décision D-09 est empiriquement justifiée.
 ## 7. Synthèse pour l'encadrant
 
 ### Ce qui fonctionne
-1. Le modèle sert **100 % de la demande** en 0,06 s.
+1. Le modèle sert **100 % de la demande** en moins de 0,1 s.
 2. La solution est **physiquement valide** — 86 contrôles indépendants.
 3. Le plan est **sobre** : une seule décadmiation, trois transferts, deux lignes
    clarifiantes. Rien d'inutile.
@@ -270,6 +306,6 @@ décision D-09 est empiriquement justifiée.
 - [ ] Confronter ces résultats à ce que fait réellement l'usine ce jour-là
 - [ ] Obtenir les réponses aux questions ci-dessus
 - [ ] Étendre à un horizon multi-périodes (perspective du rapport)
-- [ ] Étudier la variante où l'affectation des échelons à la cocristallisation devient une
-      **variable de décision** plutôt qu'un paramètre — le §4.1 montre que le gain serait
-      substantiel
+- [x] ~~Étudier la variante où l'affectation des échelons devient une variable de
+      décision~~ — **fait** (§4 bis), le gain est intégral mais assorti d'une réserve
+- [ ] Lever la réserve du §4 bis en passant à un horizon multi-période

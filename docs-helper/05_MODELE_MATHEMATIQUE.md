@@ -21,7 +21,7 @@
 | Contraintes | **138** *(mesuré)* |
 | Objectif | lexicographique à 3 niveaux |
 | Solveur envisagé | PuLP + CBC (libre) |
-| Temps de résolution | **0,06 s** *(mesuré)* |
+| Temps de résolution | **< 0,1 s** *(mesuré)* |
 
 **Pourquoi « en nombres entiers » ?** Deux familles de décisions sont intrinsèquement
 discrètes :
@@ -781,6 +781,66 @@ Liste de contrôle pour la Phase 5.
 
 ---
 
+## 10 bis. Variante optionnelle — cocristallisation décidable (D-11)
+
+### Le problème que cette variante instruit
+
+Le modèle ci-dessus traite l'affectation des échelons à la cocristallisation comme un
+**paramètre**, fidèlement au cahier des charges. L'analyse des résultats (`09`, §3) montre
+que ce paramètre est la **cause unique** des deux violations structurelles.
+
+Il était donc légitime de mesurer ce que coûte ce statut de paramètre — sans pour autant
+modifier le comportement par défaut du modèle.
+
+### La formulation
+
+On ajoute une binaire par échelon **raccordé** à une unité de cocristallisation :
+
+$$z_e \in \{0,1\}, \qquad e \in \mathcal{E}^{coc}_m$$
+
+et l'on remplace partout le paramètre $\Pi^{coc}_m$ par l'expression affine
+
+$$\boxed{\;\Pi^{coc}_m = \sum_{e \in \mathcal{E}^{coc}_m} \kappa_e\, z_e\;}$$
+
+> **Pourquoi le modèle reste linéaire.** $G_m = \eta^{coc}\Pi^{coc}_m$ et
+> $B^{coc}_m = (1-\eta^{coc})\Pi^{coc}_m$ sont des multiples scalaires d'une expression
+> affine. Toutes les contraintes qui les utilisent — (C4b), (C6), (C7), (C13), (C15) —
+> restent donc affines. **Aucune n'a besoin d'être réécrite.**
+
+### La seule contrainte qui doit être généralisée
+
+$$\text{(C5)} \qquad x^{dec}_\ell \;\le\; \Pi_m - \Pi^{coc}_m
+\qquad\text{au lieu de}\qquad x^{dec}_\ell \le \Pi^{ncl}_m$$
+
+**Pourquoi.** $\Pi^{ncl}_m$ était un paramètre valable tant que $\Pi^{coc}_m$ l'était aussi.
+Dès lors que le modèle peut éteindre un échelon cocristallisant, cet échelon devient
+disponible pour l'acide décadmié : la capacité restante doit suivre.
+
+> **La leçon, pour la deuxième fois.** Relâcher une contrainte révèle qu'une autre reposait
+> implicitement dessus. On l'a déjà vu avec la tolérance de (C4), qui a obligé à généraliser
+> (C6). **Contrôle systématique à faire :** vérifier que la forme généralisée redonne
+> l'ancienne quand on referme le degré de liberté. Ici, si tous les $z_e = 1$, alors
+> $\Pi_m - \Pi^{coc}_m = \Pi^{ncl}_m$. ✓
+
+### Le résultat
+
+| Mode | CoC produit | Dépassement IR11 | $f_2$ | $f_3$ |
+|---|---:|---:|---:|---:|
+| subi *(défaut)* | 2 431,3 | 1 016,0 | 1 268,3 | 3 111,9 |
+| **décidable** | **472,0** | **0,0** | **0,0** | **2 125,2** |
+
+Coût : **8 variables binaires** supplémentaires (37 au lieu de 29).
+
+> ### ⚠️ La réserve qui doit accompagner ce chiffre
+> Le modèle est **mono-période** : il n'a aucune raison de reconstituer IR11. Ce bac étant
+> rempli à 86,5 % au départ, l'optimiseur réduit fortement la cocristallisation simplement
+> pour le ramener vers le milieu de sa bande — ce que **récompense** le niveau 3.
+>
+> Sur un horizon multi-période, l'arbitrage serait différent.
+> **Ce résultat chiffre un potentiel, ce n'est pas une consigne d'exploitation.**
+
+---
+
 ## 11. Ce que le modèle a effectivement donné
 
 La résolution du scénario de référence est décrite en détail dans
@@ -788,7 +848,7 @@ La résolution du scénario de référence est décrite en détail dans
 
 | Contrôle du §10 | Résultat |
 |---|---|
-| Statut du solveur | ✅ **Optimal** (0,06 s) |
+| Statut du solveur | ✅ **Optimal** (< 0,1 s) |
 | $f_1 = 0$ | ✅ 100 % de la demande servie |
 | Bilans matière sur les 19 nœuds | ✅ 86 contrôles indépendants réussis |
 | Décadmiations discrètes | ✅ 750 t sur 13XY, rien ailleurs |

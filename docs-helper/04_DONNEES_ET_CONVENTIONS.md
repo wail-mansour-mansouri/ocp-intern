@@ -438,7 +438,7 @@ DECAD_ACTIVE    = ['13AB','13CD','13XY','13ZU','13F']   # équipées de filtres
 ¹ concentration (6 981,7) + demande directe en acide 29 (1 543)
 ² besoins en produits de niveau 54 : NCL 1 782 + CL 1 500 + dec_total 987
 ³ pour produire 1 500 t de CL : $1\,500/0{,}9 = 1\,667$ t entrantes
-⁴ **solde net** d'IR11 : entrées 2 431,4 (CoC systématique) − sorties 986,7 (`dec_total`)
+⁴ **solde net** d'IR11 : entrées 2 431,3 (CoC systématique) − sorties 986,7 (`dec_total`)
 ⁵ solde net d'IR12 : entrées 1 500 (CL) − sorties 1 500 (U53) = 0
 
 ### Diagnostic

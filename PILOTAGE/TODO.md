@@ -90,7 +90,7 @@
 - [x] Ch. 8 — Conclusion et perspectives
 - [x] Annexes A, B, C (formulation complète, données, dépôt)
 - [x] Figures TikZ (schéma de flux, architecture logicielle)
-- [x] Compilation `latexmk` → PDF : **79 pages, 0 avertissement**
+- [x] Compilation `latexmk` → PDF : **83 pages, 0 avertissement**
 - [ ] **À ta charge** : compléter la page de garde (nom, encadrants, dates)
 - [ ] **À ta charge** : personnaliser les remerciements
 
@@ -112,3 +112,13 @@
       export) ? Si oui, le débordement d'IR11 est un artefact de modélisation.
 - [?] **Q13** — Si la valeur métier de alpha dépasse 0,22, il faut habiliter une seconde
       ligne à produire du DEC_CL : laquelle serait envisageable ?
+
+## Finalisation (itération 4) ✅
+
+- [x] Mode optionnel « cocristallisation décidable » (D-11), désactivé par défaut
+- [x] Fichier de tests verrouillant toutes les valeurs publiées
+- [x] Correction du solveur : les contraintes de figeage sont retirées en sortie
+- [x] Audit numérique de la documentation, valeurs périmées rectifiées
+- [x] Intégration de D-11 dans le rapport (ch. 6, 7, 8, annexes, résumé)
+- [x] Intégration de D-11 dans `docs-helper` (05, 08, 09)
+- [x] Revérification de bout en bout : tests, ligne de commande, Excel, JSON, PDF

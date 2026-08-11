@@ -124,6 +124,32 @@ Figer un niveau à l'exact (\texttt{f1 == f1*}) rend la passe suivante infaisabl
 solveur ne retrouve pas au bit près la valeur qu'il vient d'annoncer. On fige donc avec une
 tolérance relative de \num{e-6}, négligeable devant des grandeurs en milliers de tonnes.
 
+Ces contraintes de figeage sont \textbf{retirées en sortie}, y compris en cas d'erreur. Sans
+ce nettoyage, la résolution laisserait le modèle dans un état différent de celui qu'elle a
+reçu : une seconde résolution du même objet accumulerait les contraintes, et le décompte
+publié dans ce rapport deviendrait faux. Le défaut a d'ailleurs été mis au jour par le
+fichier de tests décrit en section~\ref{sec:tests-valeurs}.
+
+\subsection{Un mode paramétrable plutôt qu'une bifurcation du code}
+
+Le mode « cocristallisation décidable » (décision~D-11) aurait pu donner lieu à deux
+variantes du modèle. On a préféré quatre fonctions d'aide --- \texttt{\_pi\_coc},
+\texttt{\_coc\_produit}, \texttt{\_boue\_coc}, \texttt{\_coc\_total} --- qui renvoient soit
+le paramètre, soit l'expression affine, selon que les binaires existent ou non :
+
+\begin{lstlisting}[language=Python, caption={Bascule entre paramètre et variable}, label={lst:pi-coc}]
+def _pi_coc(v, params, ligne54):
+    if not v.z:                       # mode subi : c'est un parametre
+        return params.production_54_coc[ligne54]
+    return pulp.lpSum(                # mode decidable : expression affine
+        params.production_echelon[e] * v.z[e]
+        for e in params.echelons_coc_candidats.get(ligne54, ())
+    )
+\end{lstlisting}
+
+Les fonctions de contraintes ignorent donc complètement le mode. C'est ce qui garantit
+qu'aucune des deux variantes ne peut diverger de l'autre par inadvertance.
+
 \subsection{Un écart de 0,06\,\% sur le coefficient de conversion}
 
 Le dossier publie $\mathrm{vol}_{29}(h) = 174{,}11 \cdot h \cdot 0{,}33$, alors que la
@@ -133,7 +159,7 @@ permanence qu'il reste cohérent avec la physique.
 
 \section{Stratégie de test}
 
-\num{138} tests s'exécutent en \SI{1,2}{\second}. Au-delà du décompte, trois familles
+\num{162} tests s'exécutent en environ \SI{3}{\second}. Au-delà du décompte, quatre familles
 méritent d'être distinguées.
 
 \subsection{Les tests qui verrouillent une anomalie}
@@ -169,6 +195,25 @@ différentes : bilan faussé, demande non servie, capacité dépassée, niveau d
 invalide, stock négatif, transfert sur une liaison inexistante --- et l'on vérifie qu'il les
 rejette toutes.
 
+\subsection{Les tests qui verrouillent les valeurs publiées}
+\label{sec:tests-valeurs}
+
+Ce projet cite des valeurs numériques dans une dizaine de documents et dans le présent
+rapport. Une modification du modèle rendrait silencieusement fausse une partie de cette
+documentation --- et une documentation fausse est pire qu'une documentation absente, car on
+lui fait confiance.
+
+Un fichier de tests dédié verrouille donc chaque chiffre publié : taille du modèle, stocks
+initiaux, bornes de cuve, production d'acide 54, demande consolidée, valeurs des trois
+niveaux, plan optimal, violations, tableaux de sensibilité. Chaque assertion porte en
+commentaire l'endroit où la valeur est publiée.
+
+\begin{encadre}
+Ce filet a immédiatement servi : il a révélé que la résolution laissait dans le modèle ses
+deux contraintes de figeage lexicographique, ce qui portait le décompte publié de 138 à 140
+et rendait l'objet non réutilisable. Le correctif est décrit plus haut.
+\end{encadre}
+
 \section{Sorties produites}
 
 Le programme produit une synthèse console, le classeur Excel à cinq feuilles imposé par le
@@ -183,7 +228,7 @@ python -m ocp_optim                        # resout et affiche la synthese
 python -m ocp_optim --sortie resultats/    # rapports Excel et JSON
 python -m ocp_optim --sensibilite          # analyses de sensibilite
 
-pytest                                     # 138 tests, environ 1,2 s
+pytest                                     # 162 tests, environ 1,2 s
 \end{lstlisting}
 
 Le code de retour vaut \num{0} si la validation est conforme et \num{1} sinon : le programme

@@ -25,7 +25,7 @@ infaisable. Troisièmement, un audit systématique des spécifications a mis en 
 \textbf{onze anomalies}, dont quatre erreurs arithmétiques atteignant \SI{59}{\percent}
 d'écart ; chacune est prouvée et arbitrée selon une hiérarchie de sources établie a priori.
 
-Sur le scénario de référence, le modèle atteint le statut optimal en \SI{0,06}{\second} et
+Sur le scénario de référence, le modèle atteint le statut optimal en moins de \SI{0.1}{\second} et
 satisfait \SI{100}{\percent} de la demande. Un validateur écrit indépendamment du modèle,
 à partir des seules équations physiques, confirme la solution par 86 contrôles.
 
@@ -33,9 +33,12 @@ Le résultat le plus utile pour l'exploitation n'est cependant pas le plan lui-m
 diagnostic qui l'accompagne : le modèle révèle deux violations structurelles --- le bac
 central IR11 déborde de \SI{1016}{\tonne} par jour et le stock d'une ligne reste sous son
 seuil de sécurité --- qu'\emph{aucune} décision d'exploitation ne peut corriger. Une analyse
-de sensibilité en établit la cause unique et le remède chiffré : réduire de quatre à un le
-nombre d'échelons affectés à la cocristallisation sur la ligne 14EXT résorbe intégralement
-les deux violations, sans investissement et sans dégrader le service rendu.
+de sensibilité en établit la cause unique et le remède chiffré : réduire le nombre
+d'échelons affectés à la cocristallisation résorbe intégralement les deux violations, sans
+investissement et sans dégrader le service rendu. Un mode optionnel, dans lequel cette
+affectation devient une variable de décision, confirme ce diagnostic --- sous la réserve,
+explicitement portée, qu'un modèle mono-période n'a aucune raison de reconstituer un stock
+central.
 
 \vspace{0.8cm}
 \noindent\textbf{Mots-clés} : recherche opérationnelle, programmation linéaire en nombres

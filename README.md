@@ -35,9 +35,9 @@ résout de façon optimale.
 ```
 ├── docs-helper/          📘 Documents pédagogiques — TOUT le projet expliqué
 ├── PILOTAGE/             🧭 Mémoire du projet : état, TODO, journal, décisions
-├── rapport/              📄 Rapport de stage LaTeX → PDF (79 pages)
+├── rapport/              📄 Rapport de stage LaTeX → PDF (83 pages)
 ├── src/ocp_optim/        ⚙️  Le code (13 modules)
-├── tests/                ✅ 138 tests
+├── tests/                ✅ 162 tests
 ├── data/                 📊 Profils qualité et scénarios
 └── documentation-ocp/    📁 Documents originaux de l'encadrant (ne pas modifier)
 ```
@@ -50,8 +50,9 @@ pip install -e ".[dev]"
 python -m ocp_optim                        # résout et affiche la synthèse
 python -m ocp_optim --sortie resultats/    # rapports Excel (5 feuilles) et JSON
 python -m ocp_optim --sensibilite          # analyses de sensibilité
+python -m ocp_optim --coc-decidable        # laisse le modèle choisir les échelons CoC
 
-pytest                                     # 138 tests, ~1,2 s
+pytest                                     # 162 tests, ~1,2 s
 
 cd rapport && make                         # compile le rapport en PDF
 ```
@@ -92,7 +93,7 @@ Phase 7  Rapport de stage LaTeX         ██████████ 100 %
 
 | Indicateur | Valeur |
 |---|---|
-| Statut | **Optimal** en 0,06 s |
+| Statut | **Optimal** en moins de 0,1 s |
 | Demande satisfaite | **100 %** |
 | Validation indépendante | **86 / 86** contrôles |
 | Taille du problème | 170 variables (29 binaires), 138 contraintes |
@@ -104,9 +105,11 @@ clarification sur 14XY (décadmiée) et 14ZU (ordinaire).
 à la cocristallisation : IR11 déborde de 1 016 t/jour, et le stock de 14EXT reste 252 t
 sous sa bande de sécurité.
 
-> **🎯 Recommandation chiffrée.** Ramener de 4 à 1 le nombre d'échelons de 14EXT en
+> **🎯 Recommandation chiffrée.** Réduire le nombre d'échelons affectés à la
 > cocristallisation résorbe **intégralement** les deux violations, sans investissement et
-> sans dégrader le service. → `docs-helper/09_RESULTATS.md`
+> sans dégrader le service. Un mode optionnel (`--coc-decidable`) le confirme en laissant le
+> modèle choisir lui-même : f₂ tombe de 1 268 à **0**.
+> → `docs-helper/09_RESULTATS.md`
 
 ## Quatre apports du travail
 

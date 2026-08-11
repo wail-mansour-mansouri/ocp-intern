@@ -33,13 +33,13 @@ Phase 6 : Génération du rapport Excel ...................... █████�
 Phase 7 : Rapport de stage LaTeX → PDF ..................... ██████████ 100 %  TERMINÉ
 ```
 
-**Position actuelle : toutes les phases sont terminées.**
+**Position actuelle : projet finalisé.**
 Le projet est complet : modèle, code testé, résultats validés, documentation, rapport PDF.
 
 ### Résultat en une ligne
-Statut **Optimal** en 0,06 s, **100 % de la demande servie**, **86 contrôles de
-validation réussis sur 86**, et deux violations structurelles identifiées avec leur
-cause et leur remède.
+Statut **Optimal** en moins de 0,1 s, **100 % de la demande servie**, **86 contrôles de
+validation réussis sur 86**. Les deux violations structurelles sont identifiées, leur cause
+unique établie, et le remède chiffré **puis implémenté** en mode optionnel (D-11).
 
 ---
 
@@ -52,17 +52,27 @@ cause et leur remède.
 - Modèle mathématique complet : 8 ensembles, 23 familles de paramètres, 9 familles de
   variables, 19 familles de contraintes, objectif lexicographique à 3 niveaux.
 
+### Itération 4 — Cocristallisation décidable, finalisation
+- **Mode optionnel D-11** : l'affectation des échelons à la cocristallisation devient une
+  variable de décision. Désactivé par défaut. Résorbe **intégralement** les deux violations.
+- **Fichier `test_valeurs_de_reference.py`** : verrouille chaque chiffre publié dans les
+  dix documents et le rapport. Il a immédiatement révélé un défaut — la résolution laissait
+  ses contraintes de figeage dans le modèle, le rendant non réutilisable. Corrigé.
+- Audit numérique complet de la documentation : valeurs périmées rectifiées
+  (2 431,3 et non 2 431,4 ; « moins de 0,1 s » plutôt qu'une mesure ponctuelle).
+- **162 tests**, rapport porté à **83 pages**.
+
 ### Itération 3 — Rapport de stage
-- **Rapport LaTeX de 79 pages** compilé en PDF, zéro avertissement typographique.
+- **Rapport LaTeX** compilé en PDF, zéro avertissement typographique.
 - 8 chapitres + 3 annexes, schémas TikZ, page de garde INSEA / OCP.
 - `Makefile` avec cible `verif` qui contrôle débordements et références.
 
 ### Itération 2 — Implémentation, résolution, validation
 - **Paquet Python complet** : `src/ocp_optim/` (13 modules).
 - **Modèle MILP** résolu par PuLP/CBC : 170 variables dont 29 binaires, 138 contraintes.
-- **Résolution lexicographique** en 3 passes, statut **Optimal** en 0,06 s.
+- **Résolution lexicographique** en 3 passes, statut **Optimal** en moins de 0,1 s.
 - **Validateur indépendant** : 86 contrôles, tous réussis.
-- **138 tests** automatisés (1,2 s), dont 13 tests de corruption du validateur.
+- **162 tests** automatisés (1,2 s), dont 13 tests de corruption du validateur.
 - **Rapports Excel (5 feuilles) et JSON** conformes à `OUTPUT_FORMAT.md`.
 - **Analyses de sensibilité** sur les trois paramètres incertains.
 - Deux documents pédagogiques supplémentaires : `08_IMPLEMENTATION`, `09_RESULTATS`.
@@ -73,7 +83,7 @@ cause et leur remède.
 
 | Indicateur | Valeur |
 |---|---|
-| Statut | **Optimal**, 0,06 s |
+| Statut | **Optimal**, moins de 0,1 s |
 | Demande satisfaite | **100 %** |
 | Validation | **86 / 86** contrôles |
 | Niveau 1 (demande non servie) | 0,000 |
@@ -145,7 +155,7 @@ ocp-intern/
 │   ├── model/ (variables · constraints · objective)
 │   ├── solver · results · validation · analysis · cli
 │   └── reporting/ (excel · json_export)
-├── tests/                    ← 138 tests
+├── tests/                    ← 162 tests
 ├── data/                     ← profils qualité, scénarios
 └── documentation-ocp/        ← documents originaux (NE PAS MODIFIER)
 ```

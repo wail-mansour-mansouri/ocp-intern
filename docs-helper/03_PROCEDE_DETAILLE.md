@@ -317,7 +317,7 @@ La cocristallisation **ne s'adapte pas à la demande**. La règle est :
 - `14AB` : 4 échelons sur 6 (I, J, A, K) sont affectés → 1 534,2 t entrent, **1 227,4 t de
   CoC** sortent, 306,8 t de boue retournent au stock de 13AB.
   Les échelons B et L produisent 600 t de NCL ordinaire, librement utilisables.
-- **Total CoC : 2 431,4 t/jour**, pour un besoin `dec_total` de **987 t/jour** seulement.
+- **Total CoC : 2 431,3 t/jour**, pour un besoin `dec_total` de **987 t/jour** seulement.
 
 > ### Ce qu'il faut retenir pour le modèle
 > **Aucune variable de décision.** La cocristallisation est entièrement calculée en

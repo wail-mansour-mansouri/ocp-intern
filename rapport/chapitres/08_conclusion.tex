@@ -13,7 +13,7 @@ douze hypothèses explicitement tracées. Chaque contrainte est reliée à un or
 identifié, ce qui rend le modèle discutable avec un exploitant --- condition nécessaire pour
 qu'il soit un jour utilisé.
 
-\paragraph{Résoudre.} Le modèle atteint l'optimum global en \SI{0,06}{\second} et satisfait
+\paragraph{Résoudre.} Le modèle atteint l'optimum global en moins de \SI{0.1}{\second} et satisfait
 \SI{100}{\percent} de la demande, largement en deçà de la contrainte de temps compatible avec
 un usage quotidien.
 
@@ -26,7 +26,7 @@ service, et le programme est utilisable dans une chaîne automatisée.
 
 \section{Apports méthodologiques}
 
-Trois résultats dépassent le cadre strict du livrable attendu.
+Quatre résultats dépassent le cadre strict du livrable attendu.
 
 \subsection{L'identification de l'unité de compte}
 
@@ -51,6 +51,19 @@ Ce défaut n'était pas anodin : il aurait produit un outil renvoyant des plans 
 jour à l'autre sans raison apparente, et donc rapidement abandonné par ses utilisateurs. La
 correction proposée --- un objectif lexicographique à trois niveaux --- généralise l'objectif
 demandé plutôt que de le remplacer, ce qui permet de la défendre devant le prescripteur.
+
+\subsection{La mise en évidence d'une contrainte de configuration}
+
+Le quatrième apport n'était pas prévu : il découle des trois premiers. En modélisant
+fidèlement le procédé, puis en analysant la solution, on découvre que les seules violations
+résiduelles proviennent d'un \emph{paramètre} du cahier des charges --- l'affectation des
+échelons à la cocristallisation --- et non d'une mauvaise décision d'exploitation.
+
+Ce type de résultat est le plus difficile à obtenir : il suppose d'avoir d'abord respecté la
+spécification assez scrupuleusement pour que le modèle soit crédible, puis d'accepter de la
+remettre en question. Un modèle qui aurait dès le départ traité ce paramètre comme une
+variable n'aurait rien révélé du tout --- il aurait simplement produit une bonne solution,
+sans jamais signaler que la contrainte existait.
 
 \subsection{L'audit des spécifications}
 
@@ -98,6 +111,11 @@ déjà été éliminées sur le papier, où elles coûtent peu.
 l'état final des stocks, mais sans anticiper la demande du lendemain. Un enchaînement de
 décisions localement optimales n'est pas nécessairement optimal sur la semaine.
 
+Cette limite se manifeste concrètement dans le mode décidable de la
+section~\ref{sec:mode-decidable} : le modèle réduit fortement la cocristallisation pour
+vider un bac trop rempli, sans se soucier de le reconstituer. Le chiffre obtenu mesure un
+potentiel, pas une consigne.
+
 \paragraph{Les paramètres en attente.} Deux données restent inconnues. L'analyse de
 sensibilité montre que l'une d'elles est sans influence, mais l'autre --- la part minimale
 de DEC\_CL dans IR11 --- pilote directement le niveau de décadmiation.
@@ -110,16 +128,17 @@ fait réellement l'usine un jour donné. C'est l'étape indispensable avant tout
 
 \section{Perspectives}
 
-\subsection{Rendre la cocristallisation décidable}
+\subsection{Instruire la question de la cocristallisation}
 
-C'est la perspective la plus directement rentable. L'analyse de sensibilité montre que
-l'affectation des échelons à la cocristallisation --- aujourd'hui un paramètre --- détermine
-à elle seule les deux violations structurelles. En faire une \textbf{variable de décision
-binaire par échelon} permettrait au modèle de trouver seul la configuration qui les évite.
+Cette piste a été explorée et chiffrée (section~\ref{sec:mode-decidable}) : rendre
+l'affectation des échelons décidable résorbe intégralement les deux violations. Ce qui reste
+à faire ne relève plus de la modélisation mais de l'exploitation --- il faut vérifier qu'une
+telle reconfiguration est opérationnellement possible, et à quelle fréquence les unités de
+cocristallisation peuvent être démarrées et arrêtées sans dommage.
 
-Le coût est faible : une vingtaine de binaires supplémentaires, négligeable pour le solveur.
-La difficulté est ailleurs : il faut d'abord vérifier avec l'exploitation qu'une telle
-reconfiguration est opérationnellement possible, et à quelle fréquence.
+C'est le seul point de ce rapport où le modèle propose une action que le cahier des charges
+excluait par construction. Il est donc soumis au service sous forme de question, non de
+recommandation.
 
 \subsection{L'extension multi-période}
 

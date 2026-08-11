@@ -12,7 +12,7 @@
 \textbf{Indicateur} & \textbf{Valeur} \\
 \midrule
 Statut du solveur & \textbf{Optimal} \\
-Temps de résolution & \SI{0,06}{\second} (trois passes) \\
+Temps de résolution & moins de \SI{0.1}{\second} (trois passes) \\
 Taille du problème & 170 variables dont 29 binaires, 138 contraintes \\
 Demande satisfaite & \textbf{\SI{100}{\percent}} --- aucun manque \\
 Validation indépendante & \textbf{86 contrôles réussis sur 86} \\
@@ -227,6 +227,67 @@ C'est précisément ce qu'on attend d'une analyse de sensibilité : elle ne devi
 donnée manquante, elle mesure l'effet de son absence.
 \end{resultat}
 
+\section{Lever la contrainte de configuration}
+\label{sec:mode-decidable}
+
+Les deux violations structurelles n'étant imputables ni à l'optimiseur ni à l'exploitation,
+mais au \emph{statut} accordé à l'affectation des échelons --- un paramètre subi ---, il
+était naturel de mesurer ce que coûte ce statut. Un mode optionnel a donc été ajouté, dans
+lequel cette affectation devient une variable de décision binaire par échelon
+(décision~D-11). Il est \textbf{désactivé par défaut} : le comportement standard reste
+conforme au cahier des charges.
+
+\subsection{Formulation}
+
+Chaque échelon raccordé à une unité de cocristallisation reçoit une binaire $z_e$, et la
+production dirigée vers la cocristallisation devient une expression affine :
+\begin{equation}
+\Picoc_m = \sum_{e \in \Ech^{\mathrm{coc}}_m} \kappa_e\, z_e,
+\qquad G_m = \etacoc\, \Picoc_m
+\label{eq:coc-decidable}
+\end{equation}
+
+Toutes les contraintes qui utilisaient $\Picoc_m$ --- \Ctr{4b}, \Ctr{6}, \Ctr{7}, \Ctr{13},
+\Ctr{15} --- restent affines. Une seule a dû être généralisée : la capacité des échelons non
+cocristallisants, qui valait le paramètre $\Pincl_m$, devient $\Pi_m - \Picoc_m$. Éteindre
+un échelon cocristallisant libère en effet de la capacité pour l'acide décadmié.
+
+\subsection{Résultat}
+
+\begin{table}[H]
+\centering
+\caption{Effet du passage en mode décidable}
+\label{tab:mode-decidable}
+\begin{tabular}{@{}lS[table-format=4.1]S[table-format=4.1]S[table-format=4.1]S[table-format=4.1]@{}}
+\toprule
+\textbf{Mode} & {\textbf{CoC produit}} & {\textbf{Dépassement IR11}} & {\textbf{Niveau 2}} & {\textbf{Niveau 3}} \\
+\midrule
+subi \emph{(défaut)} & 2431.3 & 1016.0 & 1268.3 & 3111.9 \\
+\textbf{décidable} & 472.0 & \bfseries 0.0 & \bfseries 0.0 & \bfseries 2125.2 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{resultat}
+Le mode décidable résorbe \textbf{intégralement} les deux violations structurelles, sert
+toujours \SI{100}{\percent} de la demande, et réduit de surcroît le coût opératoire. Le
+modèle éteint tous les échelons cocristallisants de 14EXT et n'en conserve qu'un seul sur
+14AB. Coût de la formulation : huit variables binaires supplémentaires.
+\end{resultat}
+
+\begin{alerte}[title={Une réserve qui doit accompagner ce chiffre}]
+Le modèle est \textbf{mono-période} : il n'a aucune raison de reconstituer le stock d'IR11.
+Ce bac étant rempli à \SI{86,5}{\percent} au départ, l'optimiseur réduit fortement la
+cocristallisation simplement pour le ramener vers le milieu de sa bande de sécurité --- ce
+que récompense le niveau~3 de l'objectif.
+
+Sur un horizon multi-période, l'arbitrage serait différent : il faudrait tenir compte de la
+reconstitution du stock pour les jours suivants.
+
+\textbf{Ce résultat chiffre donc un potentiel ; il ne constitue pas une consigne
+d'exploitation.} La nuance doit être portée telle quelle au service.
+\end{alerte}
+
 \section{Goulots d'étranglement}
 
 \begin{table}[H]
@@ -292,7 +353,7 @@ donc empiriquement justifiée, et non seulement argumentée.
 
 \subsection{Ce qui fonctionne}
 
-Le modèle sert \SI{100}{\percent} de la demande en \SI{0,06}{\second}, sa solution est
+Le modèle sert \SI{100}{\percent} de la demande en moins de \SI{0.1}{\second}, sa solution est
 physiquement valide, et le plan produit est sobre : une seule décadmiation, trois transferts,
 deux lignes clarifiantes. Rien d'inutile.
 

@@ -13,8 +13,9 @@ pip install -e ".[dev]"          # installe le paquet et pytest
 python -m ocp_optim                          # résout et affiche la synthèse
 python -m ocp_optim --sortie resultats/      # écrit les rapports Excel et JSON
 python -m ocp_optim --sensibilite            # ajoute les analyses de sensibilité
+python -m ocp_optim --coc-decidable          # laisse le modèle choisir les échelons CoC
 
-pytest                                       # 138 tests, environ 1,2 s
+pytest                                       # 162 tests, environ 1,2 s
 ```
 
 Le code de retour vaut **0** si la validation est conforme, **1** sinon : le programme
@@ -147,6 +148,14 @@ Figer un niveau à l'exact (`f1 == f1*`) rend la passe suivante **infaisable** :
 ne retrouve pas au bit près la valeur qu'il vient d'annoncer. On fige donc avec une
 tolérance relative de 1e-6, négligeable devant des grandeurs en milliers de tonnes.
 
+**Ces contraintes sont retirées en sortie**, y compris en cas d'erreur (bloc `finally`).
+Sans ce nettoyage, la résolution laisserait le modèle dans un état différent de celui
+qu'elle a reçu : une seconde résolution accumulerait les contraintes, et le décompte publié
+(138) deviendrait faux (140).
+
+> Ce défaut n'a pas été trouvé par relecture, mais par le fichier
+> `test_valeurs_de_reference.py` — voir §4.
+
 ### 3.5 Le coefficient 0,33
 
 Le dossier publie `get_vol_29 = 174,11 × h × 0,33`, alors que la physique déclarée donne
@@ -154,11 +163,30 @@ Le dossier publie `get_vol_29 = 174,11 × h × 0,33`, alors que la physique déc
 la formule réellement utilisée sur le site) et un test vérifie en permanence qu'il reste
 cohérent avec la physique.
 
+### 3.6 Un mode paramétrable plutôt qu'une bifurcation du code
+
+Le mode « cocristallisation décidable » (D-11) aurait pu donner lieu à deux variantes du
+modèle. On a préféré quatre fonctions d'aide qui renvoient soit le paramètre, soit
+l'expression affine, selon que les binaires existent :
+
+```python
+def _pi_coc(v, params, ligne54):
+    if not v.z:                       # mode subi : c'est un paramètre
+        return params.production_54_coc[ligne54]
+    return pulp.lpSum(                # mode décidable : expression affine
+        params.production_echelon[e] * v.z[e]
+        for e in params.echelons_coc_candidats.get(ligne54, ())
+    )
+```
+
+Les fonctions de contraintes **ignorent complètement le mode**. C'est ce qui garantit
+qu'aucune des deux variantes ne peut diverger de l'autre par inadvertance.
+
 ---
 
 ## 4. La stratégie de test
 
-**138 tests, 1,2 s.** Six fichiers, chacun avec un rôle distinct.
+**162 tests, 1,2 s.** Six fichiers, chacun avec un rôle distinct.
 
 | Fichier | Ce qu'il garantit |
 |---|---|
@@ -169,8 +197,9 @@ cohérent avec la physique.
 | `test_model.py` | structure du MILP, comportement des contraintes, non-régression |
 | `test_validation.py` | le validateur **détecte** les solutions corrompues |
 | `test_reporting_et_analyse.py` | rapports, goulots, sensibilité, ligne de commande |
+| `test_valeurs_de_reference.py` | **verrouille chaque chiffre publié** dans la documentation |
 
-### Trois familles de tests qui méritent d'être signalées
+### Quatre familles de tests qui méritent d'être signalées
 
 **Les tests qui verrouillent une anomalie.** Exemple :
 
@@ -203,6 +232,16 @@ métier serait effectivement violée.
 solutions délibérément fausses et on vérifie qu'il les rejette — treize corruptions
 différentes sont testées.
 
+**Les tests qui verrouillent les valeurs publiées.** Le projet cite des chiffres dans dix
+documents et un rapport de 83 pages. Une modification du modèle rendrait silencieusement
+fausse une partie de cette documentation — et *une documentation fausse est pire qu'une
+documentation absente, car on lui fait confiance*. `test_valeurs_de_reference.py` verrouille
+donc chaque chiffre publié, avec en commentaire l'endroit où il apparaît.
+
+> Ce filet a immédiatement servi : il a révélé que la résolution laissait ses contraintes de
+> figeage dans le modèle (§3.4). Un test écrit pour protéger la documentation a mis au jour
+> un défaut de conception.
+
 ---
 
 ## 5. Ce que produit le programme
@@ -231,6 +270,7 @@ tests de non-régression.
 | changer les priorités | `PoidsObjectif` dans `model/objective.py` |
 | ajouter un contrôle | une fonction `_valider_...` dans `validation.py` |
 | ajouter une analyse | `analysis.py` |
+| explorer la cocristallisation décidable | option `--coc-decidable` |
 
 **Règle absolue :** toute contrainte ajoutée au code doit d'abord être écrite dans
 `docs-helper/05_MODELE_MATHEMATIQUE.md`, avec son numéro, sa traduction en français et sa

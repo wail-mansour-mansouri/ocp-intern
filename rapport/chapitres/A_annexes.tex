@@ -88,6 +88,16 @@ S^{\mathrm{ncl}}_m = S^{0,\mathrm{ncl}}_m + N_m - \uncl_m - \sum_{k} y^{\text{54
 \end{equation}
 Aucune boue n'y revient : elles remontent au niveau~29. Le NCL décadmié n'y transite jamais.
 
+\paragraph{Variante D-11 --- cocristallisation décidable.}
+Quand le mode optionnel est activé, chaque échelon raccordé à une unité de cocristallisation
+reçoit une binaire $z_e$ et l'on substitue partout
+\begin{equation}
+\Picoc_m = \sum_{e \in \Ech^{\mathrm{coc}}_m} \kappa_e\, z_e
+\end{equation}
+La contrainte C5 devient alors $\xdec_\ell \le \Pi_m - \Picoc_m$ : éteindre un échelon
+cocristallisant libère de la capacité pour l'acide décadmié. Toutes les autres contraintes
+restent inchangées dans leur écriture, et toutes restent affines.
+
 \paragraph{C12 et C13 --- Bilans des bacs centraux.}
 \begin{align}
 S^{12} &= S^{0,12} + \etacl \sum_{m} \uncl_m - \sum_{k} y^{\mathrm{cl}}_{k} \\
@@ -184,7 +194,7 @@ acide 54 dec total & 986.71 & 0.00 & 986.71 \\
 \end{tabular}
 \end{table}
 
-Il en résulte une production de CoC de $0{,}80 \times \num{3039,2} = \num{2431,4}\tP$ par
+Il en résulte une production de CoC de $0{,}80 \times \num{3039,2} = \num{2431,3}\tP$ par
 jour, pour un besoin en acide de qualité décadmiée de \SI{986,71}{\tonne} --- soit un facteur
 $2{,}5$ qui est à l'origine des deux violations structurelles analysées au
 chapitre~\ref{chap:resultats}.
@@ -212,7 +222,7 @@ Espace libre dans IR12 & 985.1 & 0.0 & confortable \\
 \end{table}
 
 \begin{encadre}
-Le solde net journalier d'IR11 --- entrées \SI{2431,4}{\tonne} moins sorties
+Le solde net journalier d'IR11 --- entrées \SI{2431,3}{\tonne} moins sorties
 \SI{986,7}{\tonne} --- dépasse de \SI{587}{\tonne} l'espace disponible, \emph{avant même}
 toute décision d'optimisation.
 
@@ -235,7 +245,7 @@ la cocristallisation.
 \texttt{docs-helper/} & dix documents pédagogiques couvrant l'intégralité du projet \\
 \texttt{PILOTAGE/} & état d'avancement, tâches, journal, registre des décisions, questions \\
 \texttt{src/ocp\_optim/} & treize modules Python \\
-\texttt{tests/} & 138 tests automatisés \\
+\texttt{tests/} & 162 tests automatisés \\
 \texttt{data/} & profils qualité reconstruits, scénario de référence \\
 \texttt{rapport/} & sources \LaTeX{} du présent document \\
 \texttt{documentation-ocp/} & documents originaux fournis par l'encadrant \\
@@ -251,7 +261,7 @@ puisse être réexaminée sans avoir à reconstituer le raisonnement.
 
 \begin{table}[H]
 \centering
-\caption{Les dix décisions de modélisation}
+\caption{Les onze décisions de modélisation}
 \label{tab:decisions}
 \begin{tabular}{@{}lp{9.5cm}@{}}
 \toprule
@@ -267,6 +277,7 @@ D-07 & Les bornes de stock sont recalculées depuis la géométrie \\
 D-08 & Les hauteurs fournies sont cumulées sur deux cuves \\
 D-09 & Production obligatoire de DEC\_CL par contrainte de mélange \\
 D-10 & Charge de concentration : bande de tolérance pénalisée \\
+D-11 & Mode optionnel : cocristallisation décidable \\
 \bottomrule
 \end{tabular}
 \end{table}
